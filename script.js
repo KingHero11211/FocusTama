@@ -25,25 +25,46 @@ document.addEventListener('DOMContentLoaded', () => {
             timeRemaining: 25 * 60,
         },
     };
+    
+    // NEW: Expanded food data and slider state
+    const foodItems = [
+        { name: 'Milk', emoji: '🥛', description: 'Good for strong bones.', happiness: 10, hunger: 20 },
+        { name: 'a Fruit', emoji: '🍎', description: 'A healthy, balanced snack.', happiness: 15, hunger: 15 },
+        { name: 'Chocolate', emoji: '🍫', description: 'A delicious burst of happiness!', happiness: 30, hunger: 5 },
+        { name: 'a Meal', emoji: '🍔', description: 'A full meal. Very satisfying!', happiness: 20, hunger: 40 },
+        { name: 'a Drink', emoji: '🥤', description: 'Quenches thirst slightly.', happiness: 5, hunger: 25 },
+        { name: 'a Treat', emoji: '🍰', description: 'Super yummy, but not very filling!', happiness: 25, hunger: 10 },
+        { name: 'Veggies', emoji: '🥦', description: 'Super healthy, but not a favorite.', happiness: 5, hunger: 30 }
+    ];
+    let currentFoodIndex = 0;
+
 
     // --- 2. DOM ELEMENTS ---
     const happinessStatEl = document.getElementById('happiness-stat');
     const hungerStatEl = document.getElementById('hunger-stat');
     const timerDisplayEl = document.getElementById('timer-display');
     const startFocusBtn = document.getElementById('start-focus-btn');
-    const breakBtn = document.getElementById('break-btn');
+    const feedPetBtn = document.getElementById('feed-pet-btn');
     const askPetBtn = document.getElementById('ask-pet-btn');
     const focusTimeInput = document.getElementById('focus-time-input');
     const petThoughtBubbleEl = document.getElementById('pet-thought-bubble');
+    
+    // Modal and Slider elements
+    const feedModalEl = document.getElementById('feed-modal');
+    const confirmFeedBtn = document.getElementById('confirm-feed-btn');
+    const cancelFeedBtn = document.getElementById('cancel-feed-btn');
+    const foodSliderEl = document.getElementById('food-slider');
+    const foodDescriptionEl = document.getElementById('food-description');
+    const prevFoodBtn = document.getElementById('prev-food-btn');
+    const nextFoodBtn = document.getElementById('next-food-btn');
 
-    // Load Pet Sprites
     // Load Pet Sprites
     const petSprites = {
         idle: new Image(),
         happy: new Image(),
         sad: new Image(),
     };
-    // CORRECTED PATHS
+    // Ensure your sprite sheets are in an 'assets/images' folder
     petSprites.idle.src = 'assets/images/idle-sheet.png'; 
     petSprites.happy.src = 'assets/images/happy-sheet.png';
     petSprites.sad.src = 'assets/images/sad-sheet.png';
@@ -101,22 +122,52 @@ document.addEventListener('DOMContentLoaded', () => {
         updateUI();
     }
 
-    function takeBreak() {
-        if (state.timer.isRunning) return;
-        playSound('feed');
-        updateStats(10, 30); // Feeding the pet
-        showThoughtBubble('Yum! Thanks for the break!', 3000);
+    // --- 4. FEEDING MODAL & SLIDER LOGIC ---
+
+    function populateSlider() {
+        foodSliderEl.innerHTML = ''; // Clear existing items
+        foodItems.forEach(item => {
+            const foodDiv = document.createElement('div');
+            foodDiv.className = 'food-item';
+            foodDiv.innerHTML = `<div class="emoji">${item.emoji}</div><span>${item.name}</span>`;
+            foodSliderEl.appendChild(foodDiv);
+        });
     }
     
-    // --- 4. AI & UI ---
+    function updateSliderPosition() {
+        if (foodSliderEl.children.length === 0) return;
+        const itemWidth = foodSliderEl.children[0].offsetWidth;
+        foodSliderEl.style.transform = `translateX(-${currentFoodIndex * itemWidth}px)`;
+        foodDescriptionEl.textContent = foodItems[currentFoodIndex].description;
+    }
+
+    function openFeedModal() {
+        if (state.timer.isRunning) return;
+        playSound('click');
+        feedModalEl.classList.remove('hidden');
+    }
+    
+    function closeFeedModal() {
+        feedModalEl.classList.add('hidden');
+    }
+
+    function handleConfirmFeed() {
+        playSound('feed');
+        const selectedFood = foodItems[currentFoodIndex];
+        updateStats(selectedFood.happiness, selectedFood.hunger);
+        showThoughtBubble(`Yum! Thanks for the ${selectedFood.name}!`, 3000);
+        closeFeedModal();
+    }
+    
+    // --- 5. AI & UI ---
 
     async function askPet() {
-        if (API_KEY === 'YOUR_OPENAI_API_KEY') {
+        if (API_KEY === 'YOUR_OPENAI_API_KEY' || API_KEY === '') {
             showThoughtBubble("My brain is offline! (No API Key)", 4000);
             return;
         }
         playSound('click');
-        showThoughtBubble('Thinking...', 10000); // Show thinking bubble indefinitely until response
+        showThoughtBubble('Thinking...', 10000); 
         askPetBtn.disabled = true;
 
         try {
@@ -127,7 +178,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     'Authorization': `Bearer ${API_KEY}`
                 },
                 body: JSON.stringify({
-                    model: 'gpt-3.5-turbo', // Cheaper and faster for hackathons
+                    model: 'gpt-3.5-turbo',
                     messages: [
                         { "role": "system", "content": "You are FocusTama, a cute, 90s-era pixel pet who loves productivity. Your personality is like a Tamagotchi mixed with a helpful friend. You use fun, encouraging language, sometimes 90s slang like 'cool beans' or 'da bomb'. Keep your responses very short, under 25 words." },
                         { "role": "user", "content": "Tell me something encouraging or a fun fact." }
@@ -165,12 +216,14 @@ document.addEventListener('DOMContentLoaded', () => {
         timerDisplayEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
         
         // Buttons
-        startFocusBtn.disabled = state.timer.isRunning;
-        breakBtn.disabled = state.timer.isRunning;
-        focusTimeInput.disabled = state.timer.isRunning;
+        const isInteractable = !state.timer.isRunning;
+        startFocusBtn.disabled = !isInteractable;
+        feedPetBtn.disabled = !isInteractable;
+        askPetBtn.disabled = !isInteractable;
+        focusTimeInput.disabled = !isInteractable;
     }
 
-    // --- 5. ANIMATION & SOUND ---
+    // --- 6. ANIMATION & SOUND ---
 
     function gameLoop() {
         frameTicker++;
@@ -181,11 +234,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         const currentSprite = petSprites[state.pet.status];
-        if (currentSprite.complete) { // Ensure image is loaded
+        if (currentSprite.complete && currentSprite.naturalWidth > 0) {
             ctx.drawImage(
                 currentSprite,
-                currentFrame * FRAME_WIDTH, 0, FRAME_WIDTH, FRAME_HEIGHT, // Source rect
-                (canvas.width - FRAME_WIDTH * 2) / 2, (canvas.height - FRAME_HEIGHT * 2) / 2, FRAME_WIDTH * 2, FRAME_HEIGHT * 2 // Destination rect (scaled up)
+                currentFrame * FRAME_WIDTH, 0, FRAME_WIDTH, FRAME_HEIGHT,
+                (canvas.width - FRAME_WIDTH * 2) / 2, (canvas.height - FRAME_HEIGHT * 2) / 2, FRAME_WIDTH * 2, FRAME_HEIGHT * 2
             );
         }
         
@@ -196,11 +249,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const sound = document.getElementById(`audio-${id}`);
         if (sound) {
             sound.currentTime = 0;
-            sound.play();
+            sound.play().catch(error => console.log(`Audio play failed for ${id}: ${error}`));
         }
     }
 
-    // --- 6. PERSISTENCE & NOTIFICATIONS ---
+    // --- 7. PERSISTENCE & NOTIFICATIONS ---
 
     function saveState() {
         localStorage.setItem('focusTamaState', JSON.stringify(state));
@@ -210,31 +263,46 @@ document.addEventListener('DOMContentLoaded', () => {
         const savedState = localStorage.getItem('focusTamaState');
         if (savedState) {
             state = JSON.parse(savedState);
-            // Reset timer state on load, but keep pet state
             state.timer.isRunning = false;
-            clearInterval(state.timer.intervalId);
+            if(state.timer.intervalId) clearInterval(state.timer.intervalId);
         }
     }
     
     function showNotification(title, body) {
         if (Notification.permission === 'granted') {
-            new Notification(title, { body: body, icon: 'images/icon.png' });
+            new Notification(title, { body: body, icon: 'assets/images/icon.png' });
         }
     }
 
     function requestNotificationPermission() {
-        if (Notification.permission !== 'denied' && Notification.permission !== 'granted') {
+        if ('Notification' in window && Notification.permission !== 'denied') {
             Notification.requestPermission();
         }
     }
     
-    // --- INITIALIZE ---
+    // --- INITIALIZE & EVENT LISTENERS ---
     loadState();
+    populateSlider();
     updateUI();
+    updateSliderPosition();
     requestNotificationPermission();
-    gameLoop(); // Start the animation loop
+    gameLoop();
 
     startFocusBtn.addEventListener('click', startFocusSession);
-    breakBtn.addEventListener('click', takeBreak);
+    feedPetBtn.addEventListener('click', openFeedModal);
     askPetBtn.addEventListener('click', askPet);
+    
+    // Listeners for the modal
+    confirmFeedBtn.addEventListener('click', handleConfirmFeed);
+    cancelFeedBtn.addEventListener('click', closeFeedModal);
+    nextFoodBtn.addEventListener('click', () => {
+        currentFoodIndex = (currentFoodIndex + 1) % foodItems.length;
+        playSound('click');
+        updateSliderPosition();
+    });
+    prevFoodBtn.addEventListener('click', () => {
+        currentFoodIndex = (currentFoodIndex - 1 + foodItems.length) % foodItems.length;
+        playSound('click');
+        updateSliderPosition();
+    });
 });
