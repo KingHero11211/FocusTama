@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FocusTama</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div id="device">
+        <div id="game-container">
+            <h1>FocusTama</h1>
+            <div id="screen">
+                <div class="scanline-overlay"></div>
+                
+                <div id="pet-thought-bubble" class="hidden">...</div>
+                
+                <canvas id="pet-canvas" width="128" height="128"></canvas>
+
+                <div id="stats-container">
+                    <p>HAPPINESS: <span id="happiness-stat">50</span></p>
+                    <p>HUNGER: <span id="hunger-stat">50</span></p>
+                </div>
+            </div>
+
+            <div id="controls">
+                <div id="timer-display">25:00</div>
+                
+                <div class="input-group">
+                    <input type="number" id="focus-time-input" value="25" min="1">
+                    <button id="start-focus-btn">START FOCUS</button>
+                </div>
+
+                <div class="action-buttons">
+                    <button id="break-btn">FEED PET</button>
+                    <button id="ask-pet-btn">TALK</button>
+                </div>
+            </div>
+            <div class="brand">Model: F-T 1996</div>
+        </div>
+    </div>
+
+    <!-- Audio elements for sound effects -->
+    <audio id="audio-click" src="assets/audio/click.mp3"></audio>
+    <audio id="audio-success" src="assets/audio/success.mp3"></audio>
+    <audio id="audio-feed" src="assets/audio/feed.mp3"></audio>
+    <audio id="audio-sad" src="assets/audio/sad.mp3"></audio>
+
+    <script src="script.js"></script>
+</body>
+</html>
