@@ -34,7 +34,7 @@
                 </div>
 
                 <div class="action-buttons">
-                    <button id="break-btn">FEED PET</button>
+                    <button id="feed-pet-btn">FEED PET</button>
                     <button id="ask-pet-btn">TALK</button>
                 </div>
             </div>
@@ -42,11 +42,33 @@
         </div>
     </div>
 
+    <!-- Modal for feeding the pet -->
+    <div id="feed-modal" class="hidden">
+        <div class="modal-content">
+            <h2>Choose a Snack!</h2>
+            <div class="slider-container">
+                <button id="prev-food-btn"><</button>
+                <div class="food-slider-viewport">
+                    <div id="food-slider">
+                        <!-- Food items are dynamically inserted here by script.js -->
+                    </div>
+                </div>
+                <button id="next-food-btn">></button>
+            </div>
+            <p id="food-description">A healthy fruit to fill the tummy.</p>
+            <div class="modal-actions">
+                <button id="confirm-feed-btn">FEED</button>
+                <button id="cancel-feed-btn">CANCEL</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Audio elements for sound effects -->
-    <audio id="audio-click" src="assets/audio/click.mp3"></audio>
-    <audio id="audio-success" src="assets/audio/success.mp3"></audio>
-    <audio id="audio-feed" src="assets/audio/feed.mp3"></audio>
-    <audio id="audio-sad" src="assets/audio/sad.mp3"></audio>
+    <!-- Ensure your audio files are in a folder named 'audio' -->
+    <audio id="audio-click" src="audio/click.mp3"></audio>
+    <audio id="audio-success" src="audio/success.mp3"></audio>
+    <audio id="audio-feed" src="audio/feed.mp3"></audio>
+    <audio id="audio-sad" src="audio/sad.mp3"></audio>
 
     <script src="script.js"></script>
 </body>
