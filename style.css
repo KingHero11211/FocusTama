@@ -1,276 +1,122 @@
 :root {
-    --bg-color: #2d2d2d;
-    --device-color: #8b9bb4;
+    --bg-color: #1a1a2e;
+    --device-color: #dee2e6;
     --screen-bg: #9bbc0f;
     --screen-dark: #0f380f;
-    --button-color: #5865f2;
-    --button-shadow: #3f4acb;
+    --button-color: #495057;
+    --button-shadow: #212529;
+    --accent-color: #d9480f;
+    --accent-shadow: #a6360a;
 }
 
 body {
     background-color: var(--bg-color);
+    background-image: 
+        radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 40px),
+        radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 30px);
+    background-size: 550px 550px, 350px 350px; 
+    background-position: 0 0, 40px 60px;
+    animation: move-stars 200s linear infinite;
     color: #FFF;
     font-family: 'Press Start 2P', cursive;
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
-    margin: 0;
-    overflow: hidden;
+    height: 100vh; margin: 0; overflow: hidden;
 }
+
+@keyframes move-stars { from { background-position: 0 0; } to { background-position: -10000px 5000px; } }
 
 #device {
-    background: var(--device-color);
-    padding: 25px;
-    border-radius: 20px;
-    box-shadow: inset 0 0 15px rgba(0,0,0,0.4), 0 10px 20px rgba(0,0,0,0.5);
-    position: relative;
+    background: var(--device-color); padding: 25px; border-radius: 20px;
+    border: 3px solid #f8f9fa; box-shadow: inset 0 0 15px rgba(0,0,0,0.4), 0 10px 20px rgba(0,0,0,0.5);
+    position: relative; width: 90%; max-width: 420px;
 }
 
-#game-container {
-    text-align: center;
-}
-
-h1 {
-    color: var(--screen-dark);
-    text-shadow: 2px 2px #fff;
-    font-size: 24px;
-    margin-bottom: 15px;
-}
+#game-container { text-align: center; }
+h1 { color: var(--screen-dark); text-shadow: 2px 2px #e9ecef; font-size: 24px; margin-bottom: 15px; }
 
 #screen {
-    background-color: var(--screen-bg);
-    border: 10px solid #111;
+    background-color: var(--screen-bg); border: 10px solid #343a40;
     border-radius: 10px 10px 50px 10px / 10px 10px 50px 10px;
-    padding: 10px;
-    width: 350px;
-    height: 280px;
-    margin: 0 auto;
-    position: relative;
-    box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
-    overflow: hidden;
-    image-rendering: pixelated;
-    image-rendering: -moz-crisp-edges;
-    image-rendering: crisp-edges;
+    padding: 10px; margin: 0 auto 20px; position: relative;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.5); overflow: hidden; image-rendering: pixelated;
 }
 
 .scanline-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
     background: linear-gradient(to bottom, rgba(0,0,0,0.15) 50%, rgba(0,0,0,0.05) 50%);
-    background-size: 100% 4px;
-    pointer-events: none;
-    z-index: 2;
+    background-size: 100% 4px; pointer-events: none; z-index: 2;
 }
 
-#pet-canvas {
-    position: absolute;
-    bottom: 50px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 1;
-}
+#pet-canvas { width: 128px; height: 128px; margin-top: 20px; margin-bottom: 10px; }
 
 #pet-thought-bubble {
-    background-color: #fff;
-    color: var(--screen-dark);
-    border: 3px solid var(--screen-dark);
-    border-radius: 10px;
-    padding: 10px;
-    font-size: 12px;
-    line-height: 1.4;
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    right: 10px;
-    min-height: 40px;
-    z-index: 3;
-    transition: opacity 0.3s ease;
+    background-color: #fff; color: var(--screen-dark); border: 3px solid var(--screen-dark);
+    border-radius: 10px; padding: 10px; font-size: 12px; line-height: 1.4;
+    position: absolute; top: 10px; left: 10px; right: 10px;
+    min-height: 40px; z-index: 3; opacity: 1; transition: opacity 0.3s ease;
 }
+#pet-thought-bubble.hidden { opacity: 0; pointer-events: none; }
 
-#pet-thought-bubble.hidden {
-    opacity: 0;
-    pointer-events: none;
+#stats-container { display: flex; justify-content: space-between; gap: 10px; z-index: 1; padding: 0 5px; }
+.stat { width: 30%; text-align: center; }
+.stat label { font-size: 10px; color: var(--screen-dark); display: block; margin-bottom: 3px; }
+progress {
+    -webkit-appearance: none; appearance: none; width: 100%; height: 12px;
+    border: 2px solid var(--screen-dark); background-color: rgba(15, 56, 15, 0.4);
 }
+progress::-webkit-progress-bar { background-color: rgba(15, 56, 15, 0.4); }
+progress::-webkit-progress-value { background-color: var(--screen-dark); transition: width 0.3s ease; }
+progress::-moz-progress-bar { background-color: var(--screen-dark); }
 
-#stats-container {
-    position: absolute;
-    bottom: 10px;
-    left: 10px;
-    right: 10px;
-    display: flex;
-    justify-content: space-between;
-    font-size: 14px;
-    color: var(--screen-dark);
-    z-index: 1;
-}
-
-#controls {
-    background-color: transparent;
-    padding: 15px 0;
-    margin: 10px auto;
-}
-
+#controls { padding: 10px; }
 #timer-display {
-    font-size: 42px;
-    margin-bottom: 20px;
-    background-color: var(--screen-dark);
-    color: var(--screen-bg);
-    padding: 10px;
-    border-radius: 5px;
-    text-shadow: 2px 2px #000;
+    font-size: 42px; background-color: var(--screen-dark); color: var(--screen-bg);
+    padding: 10px; border-radius: 5px; text-shadow: 2px 2px #000; margin-bottom: 15px;
 }
 
 button {
-    font-family: 'Press Start 2P', cursive;
-    background-color: var(--button-color);
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    padding: 12px 18px;
-    cursor: pointer;
-    box-shadow: 0 5px 0 var(--button-shadow);
-    transition: all 0.1s ease-in-out;
+    font-family: 'Press Start 2P', cursive; color: #fff; border: none; border-radius: 8px;
+    padding: 12px 18px; cursor: pointer; transition: all 0.1s ease-in-out;
 }
+button:disabled { opacity: 0.6; cursor: not-allowed; }
 
-button:active, button:disabled {
-    box-shadow: 0 2px 0 var(--button-shadow);
-    transform: translateY(3px);
-    background-color: #4a54c4;
+#start-timer-btn {
+    width: 100%; margin-bottom: 15px; background-color: var(--accent-color);
+    box-shadow: 0 5px 0 var(--accent-shadow); font-size: 14px;
 }
+#start-timer-btn:active:not(:disabled) { box-shadow: 0 2px 0 var(--accent-shadow); transform: translateY(3px); }
 
-button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
+.action-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.action-buttons button { background-color: var(--button-color); box-shadow: 0 5px 0 var(--button-shadow); }
+.action-buttons button:active:not(:disabled) { box-shadow: 0 2px 0 var(--button-shadow); transform: translateY(3px); }
 
-.input-group {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    align-items: center;
-    margin-bottom: 15px;
-}
+.brand { font-size: 10px; color: rgba(0,0,0,0.5); margin-top: 15px; }
 
-#focus-time-input {
-    font-family: 'Press Start 2P', cursive;
-    width: 70px;
-    text-align: center;
-    border: 3px solid var(--screen-dark);
-    background-color: var(--screen-bg);
-    color: var(--screen-dark);
-    font-size: 18px;
-    padding: 8px;
-    border-radius: 5px;
-}
-
-.action-buttons {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    margin-top: 15px;
-}
-
-.brand {
-    font-size: 10px;
-    color: rgba(0,0,0,0.5);
-    margin-top: 10px;
-}
-
-
-/* --- STYLES FOR FEEDING MODAL --- */
-
+/* Feeding Modal Styles */
 #feed-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 100;
-    transition: opacity 0.3s ease;
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background-color: rgba(0, 0, 0, 0.7); display: flex; justify-content: center;
+    align-items: center; z-index: 100; opacity: 1; transition: opacity 0.3s ease;
 }
-
-#feed-modal.hidden {
-    opacity: 0;
-    pointer-events: none;
-}
-
+#feed-modal.hidden { opacity: 0; pointer-events: none; }
 .modal-content {
-    background-color: var(--device-color);
-    padding: 25px;
-    border-radius: 15px;
-    border: 5px solid var(--bg-color);
-    text-align: center;
-    width: 400px;
+    background-color: var(--device-color); padding: 25px; border-radius: 15px;
+    border: 5px solid var(--bg-color); text-align: center; width: 90%; max-width: 400px;
     box-shadow: 0 5px 15px rgba(0,0,0,0.5);
 }
-
-.modal-content h2 {
-    color: var(--screen-dark);
-    text-shadow: 1px 1px #fff;
-    margin-bottom: 20px;
-}
-
-.slider-container {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 15px;
-}
-
-.food-slider-viewport {
-    width: 150px; /* Width of a single food item */
-    height: 120px; /* Height of a single food item */
-    overflow: hidden;
-    margin: 0 10px;
-}
-
-#food-slider {
-    display: flex;
-    transition: transform 0.3s ease-in-out;
-}
-
+.modal-content h2 { color: var(--screen-dark); text-shadow: 1px 1px #fff; margin-bottom: 20px; }
+.slider-container { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; }
+.food-slider-viewport { width: 150px; height: 120px; overflow: hidden; margin: 0 10px; }
+#food-slider { display: flex; transition: transform 0.3s ease-in-out; }
 .food-item {
-    width: 150px; /* Must match viewport width */
-    height: 120px; /* Must match viewport height */
-    flex-shrink: 0;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    background: var(--screen-bg);
-    border: 3px solid var(--screen-dark);
-    border-radius: 10px;
-    color: var(--screen-dark);
+    width: 150px; height: 120px; flex-shrink: 0; display: flex; flex-direction: column;
+    justify-content: center; align-items: center; background: var(--screen-bg);
+    border: 3px solid var(--screen-dark); border-radius: 10px; color: var(--screen-dark);
 }
-
-.food-item .emoji {
-    font-size: 48px;
-    margin-bottom: 10px;
-}
-
-#food-description {
-    font-size: 14px;
-    height: 30px; /* Reserve space */
-    color: #fff;
-    text-shadow: 1px 1px var(--bg-color);
-}
-
-.modal-actions {
-    margin-top: 20px;
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-}
-
-/* Make modal buttons smaller */
-.modal-actions button, .slider-container button {
-    padding: 10px 15px;
-}
+.food-item .emoji { font-size: 48px; margin-bottom: 10px; }
+#food-description { font-size: 14px; height: 30px; color: #fff; text-shadow: 1px 1px var(--bg-color); }
+.modal-actions { margin-top: 20px; display: flex; justify-content: center; gap: 20px; }
+.modal-actions button, .slider-container button { padding: 10px 15px; background-color: var(--button-color); box-shadow: 0 5px 0 var(--button-shadow); }
+.slider-container button { background-color: var(--screen-dark); color: var(--screen-bg); box-shadow: 0 4px 0 #000; }
