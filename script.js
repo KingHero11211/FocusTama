@@ -1,7 +1,5 @@
 window.onload = () => {
     // --- 1. CONFIG & CONSTANTS ---
-    const API_KEY = 'YOUR_OPENAI_API_KEY_HERE';
-    const API_URL = 'https://api.openai.com/v1/chat/completions';
     const EVOLUTION_THRESHOLD = 5;
     const STAT_DECAY_INTERVAL = 30000;
     const FOOD_ITEMS = [
@@ -25,6 +23,10 @@ window.onload = () => {
     }
 
     // --- 3. DOM ELEMENT SELECTORS ---
+    const chatToggleBtn = document.getElementById('chat-toggle-btn');
+    const chatContainer = document.getElementById('chat-container');
+    const chatForm = document.getElementById('chat-form');
+    const chatInput = document.getElementById('chat-input');
     const petCanvas = document.getElementById('pet-canvas'); const ctx = petCanvas.getContext('2d');
     const happinessBar = document.getElementById('happiness-bar'); const hungerBar = document.getElementById('hunger-bar'); const energyBar = document.getElementById('energy-bar');
     const timerDisplay = document.getElementById('timer-display'); const startTimerBtn = document.getElementById('start-timer-btn');
@@ -114,11 +116,19 @@ window.onload = () => {
         }
     }
 
-    function showThoughtBubble(text, duration = 3000) {
-        thoughtBubble.textContent = text;
-        thoughtBubble.classList.remove('hidden');
-        if (duration) setTimeout(() => thoughtBubble.classList.add('hidden'), duration);
+    function showThoughtBubble(text, duration = 5000) { // NEW: Default duration is now 5 seconds
+    thoughtBubble.textContent = text;
+    thoughtBubble.classList.remove('hidden');
+
+    if (duration) {
+        // We also want to clear any previous timer to prevent it from closing early
+        if (window.thoughtBubbleTimer) clearTimeout(window.thoughtBubbleTimer);
+        
+        window.thoughtBubbleTimer = setTimeout(() => {
+            thoughtBubble.classList.add('hidden');
+        }, duration);
     }
+}
 
     // --- 7. DAY/NIGHT & CONTEXTUAL EVENTS ---
     function updateDayNightCycle() {
@@ -201,29 +211,60 @@ window.onload = () => {
     function resetProgress() { if (confirm('Are you sure? This will reset your pet and all tasks!')) { localStorage.removeItem('focusTamaState'); init(true); } }
 
     // --- 10. AI INTERACTION ---
-    async function talkToPet() {
-        if (!API_KEY || API_KEY === 'YOUR_OPENAI_API_KEY_HERE') {
-            const messages = ["Let's do this!", "One task at a time.", "You're awesome!"];
-            showThoughtBubble(messages[Math.floor(Math.random() * messages.length)]);
-            return;
-        }
-        playSound('click'); talkBtn.disabled = true; showThoughtBubble('Thinking...', 4000);
-        try {
-            const response = await fetch(API_URL, {
-                method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${API_KEY}` },
-                body: JSON.stringify({ model: 'gpt-3.5-turbo',
-                    messages: [
-                        { "role": "system", "content": "You are FocusTama, a cute, 90s-era pixel pet. Your personality is encouraging and fun, using slang like 'cool beans' or 'da bomb'. You give short, motivational advice about productivity, focus, and taking breaks. Keep responses under 25 words." },
-                        { "role": "user", "content": "Give me a productivity tip!" }
-                    ], max_tokens: 40
-                })
-            });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.error ? data.error.message : "Unknown API Error");
-            showThoughtBubble(data.choices[0].message.content.trim());
-        } catch (error) { console.error("AI Error:", error); showThoughtBubble("Oops, brain freeze!", 3000); }
-        finally { if (!state.timer.isRunning) talkBtn.disabled = false; }
+    // --- 10. AI INTERACTION (Upgraded for Two-Way Chat) ---
+async function handleChatMessage(userMessage) {
+    if (typeof GOOGLE_API_KEY === 'undefined' || GOOGLE_API_KEY === 'PASTE_YOUR_GOOGLE_AI_API_KEY_HERE') {
+        showThoughtBubble("My AI brain is offline right now!");
+        return;
     }
+
+    playSound('click');
+    chatToggleBtn.disabled = true; // Disable the main chat button during conversation
+    chatInput.disabled = true;
+    chatForm.querySelector('button').disabled = true;
+    showThoughtBubble('Thinking...', 10000); // Show thinking bubble for up to 10 seconds
+
+    const GOOGLE_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GOOGLE_API_KEY}`;
+    
+    const requestBody = {
+        "contents": [{
+            "parts": [{
+                "text": `You are FocusTama, a cute, 90s-era pixel pet. Your personality is encouraging and fun, using slang like 'cool beans' or 'da bomb'. You give short, motivational advice. Keep responses under 30 words. The user just said this to you: "${userMessage}"`
+            }]
+        }],
+        "generationConfig": { "temperature": 0.9, "maxOutputTokens": 60 },
+        "safetySettings": [ /* ... safety settings ... */ ]
+    };
+
+    try {
+        const response = await fetch(GOOGLE_API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestBody)
+        });
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error ? errorData.error.message : "API Error");
+        }
+        const data = await response.json();
+        if (data.candidates && data.candidates.length > 0) {
+            const message = data.candidates[0].content.parts[0].text.trim();
+            showThoughtBubble(message);
+        } else {
+            console.error("AI response blocked or empty:", data);
+            showThoughtBubble("I'm not sure what to say... try again!");
+        }
+    } catch (error) {
+        console.error("Google AI Error:", error);
+        showThoughtBubble("Oops, brain freeze!", 3000);
+    } finally {
+        if (!state.timer.isRunning) {
+            chatToggleBtn.disabled = false;
+            chatInput.disabled = false;
+            chatForm.querySelector('button').disabled = false;
+        }
+    }
+}
 
     // --- 11. RE-ARCHITECTED POMODORO TIMER ---
     function handleTimer() {
@@ -340,7 +381,19 @@ window.onload = () => {
         taskForm.addEventListener('submit', addTask);
         taskSelect.addEventListener('change', updateUI);
         feedBtn.addEventListener('click', openFeedModal);
-        talkBtn.addEventListener('click', talkToPet);
+        chatToggleBtn.addEventListener('click', () => {
+    playSound('click');
+    chatContainer.classList.toggle('hidden');
+});
+
+chatForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const userMessage = chatInput.value.trim();
+    if (userMessage) {
+        handleChatMessage(userMessage);
+        chatInput.value = ''; // Clear the input after sending
+    }
+});
         confirmFeedBtn.addEventListener('click', handleConfirmFeed);
         cancelFeedBtn.addEventListener('click', () => { playSound('click'); feedModal.classList.add('hidden'); });
         nextFoodBtn.addEventListener('click', () => { playSound('click'); currentFoodIndex = (currentFoodIndex + 1) % FOOD_ITEMS.length; updateSliderPosition(); });
