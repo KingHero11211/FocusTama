@@ -6,9 +6,7 @@ This project was built for the **"Blast from the Past: With a Modern Twist"** th
 
 **[▶️ Live Demo Link Here]** <!-- TODO: Add your live demo link (e.g., from GitHub Pages or Netlify) -->
 
-<p align="center">
-  <img src="path/to/your/screenshot.png" alt="FocusTama Screenshot" width="450">
-</p>
+<img width="1908" height="976" alt="Image" src="https://github.com/user-attachments/assets/9001aba8-3a62-4e7c-88fb-244f5c05d634" />
 <!-- TODO: Add a screenshot of your app to the repository and update the path above! -->
 
 ---
