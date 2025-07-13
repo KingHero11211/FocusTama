@@ -45,3 +45,4 @@ This project was built from the ground up with a focus on clean, framework-free 
 ## 📂 File Structure
 
 The project is organized into a clean and intuitive structure:
+<img width="529" height="588" alt="Image" src="https://github.com/user-attachments/assets/febfe731-f000-4bd2-a904-d2a19fc5fedf" />
