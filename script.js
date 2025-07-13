@@ -1,202 +1,12 @@
-window.onload = () => { // CRITICAL: Wait for all assets to load before running the script
-    // --- 1. STATE MANAGEMENT ---
-    let state = {
-        pet: { happiness: 50, hunger: 50, energy: 50, status: 'idle' },
-        timer: {
-            isRunning: false, isBreak: false, intervalId: null,
-            focusDuration: 25, // NEW: Default focus time in minutes
-            timeRemaining: 25 * 60,
-        },
-        lastInteractionTime: Date.now()
-    };
-    const BREAK_TIME = 5 * 60;
-    const STAT_DECAY_INTERVAL = 30000;
-
-    // --- 2. DOM ELEMENT SELECTORS ---
-    const petCanvas = document.getElementById('pet-canvas');
-    const ctx = petCanvas.getContext('2d');
-    const happinessBar = document.getElementById('happiness-bar');
-    const hungerBar = document.getElementById('hunger-bar');
-    const energyBar = document.getElementById('energy-bar');
-    const startTimerBtn = document.getElementById('start-timer-btn');
-    const feedBtn = document.getElementById('feed-btn');
-    const playBtn = document.getElementById('play-btn');
-    const restBtn = document.getElementById('rest-btn');
-    const talkBtn = document.getElementById('talk-btn');
-    const thoughtBubble = document.getElementById('pet-thought-bubble');
-    // NEW: Time adjustment selectors
-    const timeDecreaseBtn = document.getElementById('time-decrease-btn');
-    const timeIncreaseBtn = document.getElementById('time-increase-btn');
-    const timeSettingDisplay = document.getElementById('time-setting-display');
-
-    // --- 3. PET ANIMATION & DRAWING ---
-    const petSprites = { idle: new Image(), happy: new Image(), sad: new Image() };
-    // TODO: Create 256x64 sprite sheets (4 frames of 64x64) for each mood
-    petSprites.idle.src = 'assets/images/idle-sheet.png';
-    petSprites.happy.src = 'assets/images/happy-sheet.png';
-    petSprites.sad.src = 'assets/images/sad-sheet.png';
-    const FRAME_WIDTH = 64, FRAME_HEIGHT = 64;
-    let currentFrame = 0, frameTicker = 0;
-
-    function drawPet() {
-        frameTicker++;
-        if (frameTicker % 15 === 0) currentFrame = (currentFrame + 1) % 4;
-        ctx.clearRect(0, 0, petCanvas.width, petCanvas.height);
-        const currentSprite = petSprites[state.pet.status] || petSprites.idle;
-        if (currentSprite.complete && currentSprite.naturalWidth > 0) {
-            ctx.drawImage(currentSprite, currentFrame * FRAME_WIDTH, 0, FRAME_WIDTH, FRAME_HEIGHT, 0, 0, petCanvas.width, petCanvas.height);
-        }
-    }
-
-    // --- 4. CORE GAME LOGIC ---
-    function updateStats({ happiness = 0, hunger = 0, energy = 0 }) {
-        state.pet.happiness = Math.max(0, Math.min(100, state.pet.happiness + happiness));
-        state.pet.hunger = Math.max(0, Math.min(100, state.pet.hunger + hunger));
-        state.pet.energy = Math.max(0, Math.min(100, state.pet.energy + energy));
-        state.lastInteractionTime = Date.now();
-        updatePetStatus();
-        updateUI();
-    }
-
-    function updatePetStatus() {
-        const { happiness, hunger, energy } = state.pet;
-        if (happiness < 30 || hunger < 30 || energy < 20) state.pet.status = 'sad';
-        else if (happiness > 70 && energy > 60) state.pet.status = 'happy';
-        else state.pet.status = 'idle';
-    }
-
-    function handleStatDecay() {
-        const timeSinceLastInteraction = Date.now() - state.lastInteractionTime;
-        if (!state.timer.isRunning && timeSinceLastInteraction > STAT_DECAY_INTERVAL * 2) {
-             updateStats({ happiness: -1, hunger: -1, energy: -1 });
-        }
-    }
-
-    // --- 5. UI & INTERACTIONS ---
-    function updateUI() {
-        happinessBar.value = state.pet.happiness;
-        hungerBar.value = state.pet.hunger;
-        energyBar.value = state.pet.energy;
-        timeSettingDisplay.textContent = `${state.timer.focusDuration} MIN`;
-
-        const minutes = Math.floor(state.timer.timeRemaining / 60);
-        const seconds = state.timer.timeRemaining % 60;
-        
-        const isInteractable = !state.timer.isRunning;
-        feedBtn.disabled = !isInteractable;
-        playBtn.disabled = !isInteractable;
-        restBtn.disabled = !isInteractable;
-        talkBtn.disabled = !isInteractable;
-        timeDecreaseBtn.disabled = !isInteractable;
-        timeIncreaseBtn.disabled = !isInteractable;
-
-        if (state.timer.isRunning) {
-            startTimerBtn.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-        } else {
-            startTimerBtn.textContent = `START ${state.timer.focusDuration} MIN FOCUS`;
-        }
-    }
-    
-    const petMessages = ["You're doing great!", "Let's crush this task!", "Believe in yourself!", "I'm here for you!"];
-    function talkToPet() {
-        playSound('click');
-        showThoughtBubble(petMessages[Math.floor(Math.random() * petMessages.length)], 3000);
-    }
-
-    function showThoughtBubble(text, duration) {
-        thoughtBubble.textContent = text;
-        thoughtBubble.classList.remove('hidden');
-        if (duration) setTimeout(() => thoughtBubble.classList.add('hidden'), duration);
-    }
-    
-    // NEW: Adjust focus duration
-    function adjustTime(amount) {
-        playSound('click');
-        state.timer.focusDuration = Math.max(5, state.timer.focusDuration + amount); // Minimum 5 minutes
-        updateUI();
-    }
-
-    // --- 6. POMODORO TIMER LOGIC ---
-    function startTimer() {
-        playSound('click');
-        if (state.timer.isRunning) { // Stop the timer if it's running
-            clearInterval(state.timer.intervalId);
-            state.timer.isRunning = false;
-            showThoughtBubble("Timer stopped.", 2000);
-        } else { // Start a new focus session
-            state.timer.isRunning = true;
-            state.timer.isBreak = false;
-            state.timer.timeRemaining = state.timer.focusDuration * 60;
-            showThoughtBubble(`Focus for ${state.timer.focusDuration} mins!`, 3000);
-            runTimer();
-        }
-        updateUI();
-    }
-    
-    function runTimer() {
-        clearInterval(state.timer.intervalId);
-        state.timer.intervalId = setInterval(() => {
-            state.timer.timeRemaining--;
-            if (state.timer.timeRemaining < 0) {
-                if (state.timer.isBreak) { // Break finishes
-                    playSound('success');
-                    showThoughtBubble("Break's over!", 3000);
-                    showNotification("Break's over!", "Time to get back to it!");
-                    clearInterval(state.timer.intervalId);
-                    state.timer.isRunning = false;
-                } else { // Focus session finishes
-                    playSound('success');
-                    updateStats({ happiness: 20, energy: -10 });
-                    showNotification("Focus complete!", "Awesome job! Your pet is proud.");
-                    state.timer.isBreak = true;
-                    state.timer.timeRemaining = BREAK_TIME;
-                    showThoughtBubble("Break time!", 3000);
-                }
-            }
-            updateUI();
-        }, 1000);
-    }
-    
-    // --- 7. UTILITIES (Audio, Notifications, Persistence) ---
-    function playSound(id) { const s = document.getElementById(`audio-${id}`); if(s) s.play().catch(e => {}); }
-    function showNotification(t, b) { if(Notification.permission==='granted') new Notification(t, {body:b, icon:'assets/images/icon.png'}); }
-    function saveState() { localStorage.setItem('focusTamaState', JSON.stringify(state)); }
-    function loadState() {
-        const saved = JSON.parse(localStorage.getItem('focusTamaState'));
-        if (saved) {
-            state = { ...state, ...saved, timer: { ...state.timer, ...saved.timer, isRunning: false, intervalId: null } };
-        }
-    }
-
-    // --- 8. INITIALIZATION & EVENT LISTENERS ---
-    loadState();
-    updatePetStatus();
-    updateUI();
-    setInterval(handleStatDecay, STAT_DECAY_INTERVAL);
-    setInterval(saveState, 5000); // Save state every 5 seconds
-    Notification.requestPermission();
-    (function gameLoop() {
-        drawPet();
-        requestAnimationFrame(gameLoop);
-    })();
-
-    startTimerBtn.addEventListener('click', startTimer);
-    timeDecreaseBtn.addEventListener('click', () => adjustTime(-5));
-    timeIncreaseBtn.addEventListener('click', () => adjustTime(5));
-    feedBtn.addEventListener('click', () => { playSound('feed'); updateStats({ hunger: 25, happiness: 5 }); showThoughtBubble("Yum!", 2000); });
-    playBtn.addEventListener('click', () => { playSound('click'); updateStats({ happiness: 20, energy: -15 }); showThoughtBubble("Fun!", 2000); });
-    restBtn.addEventListener('click', () => { playSound('click'); updateStats({ energy: 30, happiness: 5 }); showThoughtBubble("Refreshed!", 2000); });
-    talkBtn.addEventListener('click', talkToPet);
-};window.onload = () => {
+// Wrap the entire application in an Immediately Invoked Function Expression (IIFE)
+// and a `window.onload` event to ensure everything runs after the page is ready
+// and to avoid polluting the global scope.
+window.onload = () => {
     // --- 1. CONFIG & CONSTANTS ---
     const API_KEY = 'YOUR_OPENAI_API_KEY_HERE'; // TODO: Add your OpenAI API key
     const API_URL = 'https://api.openai.com/v1/chat/completions';
-    const FOCUS_TIME = 25 * 60;
-    const BREAK_TIME = 5 * 60;
+    const EVOLUTION_THRESHOLD = 5;
     const STAT_DECAY_INTERVAL = 30000;
-    const EVOLUTION_THRESHOLD = 5; // Evolve after 5 completed focus sessions
-    
-    // Game data for feeding
     const FOOD_ITEMS = [
         { name: 'Apple', emoji: '🍎', description: 'A healthy, balanced snack.', happiness: 15, hunger: 15, energy: 5 },
         { name: 'Steak', emoji: '🥩', description: 'A full meal. Very satisfying!', happiness: 20, hunger: 40, energy: 10 },
@@ -205,24 +15,18 @@ window.onload = () => { // CRITICAL: Wait for all assets to load before running 
     ];
 
     // --- 2. STATE MANAGEMENT ---
-    let state = {
-        pet: {
-            happiness: 50,
-            hunger: 50,
-            energy: 50,
-            status: 'idle', // 'idle', 'happy', 'sad'
-            evolution: 0, // 0 = Stage 1, 1 = Stage 2
-        },
-        timer: {
-            isRunning: false,
-            isBreak: false,
-            intervalId: null,
-            timeRemaining: FOCUS_TIME,
-        },
-        focusSessionsCompleted: 0,
-        lastInteractionTime: Date.now()
-    };
-    
+    let state = {};
+    function getDefaultState() {
+        return {
+            pet: { happiness: 50, hunger: 50, energy: 50, status: 'idle', evolution: 0, isSleeping: false },
+            timer: { isRunning: false, isBreak: false, intervalId: null, timeRemaining: 25 * 60, activeTaskId: null },
+            tasks: [],
+            focusSessionsCompleted: 0,
+            settings: { focusDuration: 25, breakDuration: 5, sound: true },
+            lastInteractionTime: Date.now()
+        };
+    }
+
     // --- 3. DOM ELEMENT SELECTORS ---
     const petCanvas = document.getElementById('pet-canvas');
     const ctx = petCanvas.getContext('2d');
@@ -234,44 +38,82 @@ window.onload = () => { // CRITICAL: Wait for all assets to load before running 
     const feedBtn = document.getElementById('feed-btn');
     const talkBtn = document.getElementById('talk-btn');
     const thoughtBubble = document.getElementById('pet-thought-bubble');
-    // Feeding Modal Elements
+    const taskSelect = document.getElementById('task-select');
+    const taskForm = document.getElementById('task-form');
+    const taskInput = document.getElementById('task-input');
     const feedModal = document.getElementById('feed-modal');
     const foodSlider = document.getElementById('food-slider');
     const foodDescription = document.getElementById('food-description');
-    let currentFoodIndex = 0;
+    const settingsModal = document.getElementById('settings-modal');
+    const settingFocusTime = document.getElementById('setting-focus-time');
+    const settingBreakTime = document.getElementById('setting-break-time');
+    const settingSoundToggle = document.getElementById('setting-sound-toggle');
+    const settingsBtn = document.getElementById('settings-btn');
+    const saveSettingsBtn = document.getElementById('save-settings-btn');
+    const cancelSettingsBtn = document.getElementById('cancel-settings-btn');
+    const resetProgressBtn = document.getElementById('reset-progress-btn');
+    const confirmFeedBtn = document.getElementById('confirm-feed-btn');
+    const cancelFeedBtn = document.getElementById('cancel-feed-btn');
+    const prevFoodBtn = document.getElementById('prev-food-btn');
+    const nextFoodBtn = document.getElementById('next-food-btn');
 
     // --- 4. PET ANIMATION & DRAWING ---
     const petSprites = {
         base: { idle: new Image(), happy: new Image(), sad: new Image() },
         evo: { idle: new Image(), happy: new Image(), sad: new Image() }
     };
-    // TODO: Ensure you have 6 sprite sheet files in 'assets/images/'
-    petSprites.base.idle.src = 'assets/images/idle-sheet.png';
-    petSprites.base.happy.src = 'assets/images/happy-sheet.png';
-    petSprites.base.sad.src = 'assets/images/sad-sheet.png';
-    petSprites.evo.idle.src = 'assets/images/puppy-evo-idle.png';
-    petSprites.evo.happy.src = 'assets/images/puppy-evo-happy.png';
-    petSprites.evo.sad.src = 'assets/images/puppy-evo-sad.png';
-    
     const FRAME_WIDTH = 64, FRAME_HEIGHT = 64;
     let currentFrame = 0, frameTicker = 0;
 
     function drawPet() {
+        if (!state.pet) return; // Guard clause against running before state is initialized
         frameTicker++;
-        if (frameTicker % 15 === 0) currentFrame = (currentFrame + 1) % 4;
+        if (frameTicker % 15 === 0) {
+            currentFrame = (currentFrame + 1) % 4;
+        }
         ctx.clearRect(0, 0, petCanvas.width, petCanvas.height);
-        
         const evolutionStage = state.pet.evolution === 0 ? 'base' : 'evo';
         const currentSpriteSet = petSprites[evolutionStage];
-        const currentSprite = currentSpriteSet[state.pet.status] || currentSpriteSet.idle;
-        
+        let currentSprite = currentSpriteSet[state.pet.status] || currentSpriteSet.idle;
+        if (state.pet.isSleeping) {
+            currentSprite = currentSpriteSet.sad; // Use 'sad' animation for sleeping
+        }
         if (currentSprite.complete && currentSprite.naturalWidth > 0) {
             ctx.drawImage(currentSprite, currentFrame * FRAME_WIDTH, 0, FRAME_WIDTH, FRAME_HEIGHT, 0, 0, petCanvas.width, petCanvas.height);
         }
     }
 
-    // --- 5. CORE GAME LOGIC ---
+        // This is the function that was missing.
+    function loadSprites() {
+        const spritePaths = {
+            base: { idle: 'assets/images/puppy-idle.png', happy: 'assets/images/puppy-happy.png', sad: 'assets/images/puppy-sad.png' },
+            evo: { idle: 'assets/images/puppy-evo-idle.png', happy: 'assets/images/puppy-evo-happy.png', sad: 'assets/images/puppy-evo-sad.png' }
+        };
+        let totalSprites = 0;
+        for (const stage in spritePaths) {
+            for (const mood in spritePaths[stage]) {
+                totalSprites++;
+                petSprites[stage][mood].src = spritePaths[stage][mood];
+                petSprites[stage][mood].onload = () => {
+                    spritesLoaded++;
+                    if (spritesLoaded === totalSprites) {
+                        init(); // Start the app only when all images are loaded
+                    }
+                };
+                petSprites[stage][mood].onerror = () => {
+                    console.error(`Failed to load sprite: ${spritePaths[stage][mood]}`);
+                    spritesLoaded++;
+                    if (spritesLoaded === totalSprites) {
+                        init(); // Also init on error to not block app
+                    }
+                };
+            }
+        }
+    }
+
+    // --- 5. CORE LOGIC ---
     function updateStats({ happiness = 0, hunger = 0, energy = 0 }) {
+        if (state.pet.isSleeping && happiness <= 0 && hunger <= 0 && energy <= 0) return;
         state.pet.happiness = Math.max(0, Math.min(100, state.pet.happiness + happiness));
         state.pet.hunger = Math.max(0, Math.min(100, state.pet.hunger + hunger));
         state.pet.energy = Math.max(0, Math.min(100, state.pet.energy + energy));
@@ -281,11 +123,14 @@ window.onload = () => { // CRITICAL: Wait for all assets to load before running 
     }
 
     function updatePetStatus() {
-        const { happiness, hunger, energy } = state.pet;
-        if (happiness < 30 || hunger < 30 || energy < 20) {
-            if (state.pet.status !== 'sad') playSound('sad');
+        if (state.pet.isSleeping) return;
+        const oldStatus = state.pet.status;
+        if (state.pet.happiness < 30 || state.pet.hunger < 30 || state.pet.energy < 20) {
             state.pet.status = 'sad';
-        } else if (happiness > 70 && energy > 60) {
+            if (oldStatus !== 'sad') {
+                triggerContextualThought(state.pet.hunger < 30 ? 'hungry' : 'bored');
+            }
+        } else if (state.pet.happiness > 70 && state.pet.energy > 60) {
             state.pet.status = 'happy';
         } else {
             state.pet.status = 'idle';
@@ -293,34 +138,124 @@ window.onload = () => { // CRITICAL: Wait for all assets to load before running 
     }
 
     function handleStatDecay() {
-        if (!state.timer.isRunning) {
-            updateStats({ happiness: -1, hunger: -2, energy: -1 }); // Hunger decays faster
+        if (!state.timer.isRunning && !state.pet.isSleeping) {
+            updateStats({ happiness: -1, hunger: -2, energy: -1 });
         }
     }
 
     // --- 6. UI & INTERACTIONS ---
     function updateUI() {
+        if (!state.pet) return;
         happinessBar.value = state.pet.happiness;
         hungerBar.value = state.pet.hunger;
         energyBar.value = state.pet.energy;
-
         const minutes = Math.floor(state.timer.timeRemaining / 60);
         const seconds = state.timer.timeRemaining % 60;
         timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-        
         const isInteractable = !state.timer.isRunning;
         feedBtn.disabled = !isInteractable;
         talkBtn.disabled = !isInteractable;
-        startTimerBtn.textContent = state.timer.isRunning ? "STOP" : "START FOCUS";
+        taskInput.disabled = !isInteractable;
+        taskForm.querySelector('button').disabled = !isInteractable;
+        settingsBtn.disabled = !isInteractable;
+        const hasTasks = state.tasks.some(task => !task.completed);
+        const taskSelected = taskSelect.value !== "";
+        startTimerBtn.disabled = !isInteractable || !hasTasks || !taskSelected;
+        if (isInteractable) {
+            startTimerBtn.textContent = hasTasks && taskSelected ? "START FOCUS" : (hasTasks ? "SELECT A TASK" : "ADD A TASK");
+        } else {
+            startTimerBtn.textContent = state.timer.isBreak ? "ENJOY YOUR BREAK" : "FOCUS IN PROGRESS...";
+        }
     }
-    
+
     function showThoughtBubble(text, duration = 3000) {
         thoughtBubble.textContent = text;
         thoughtBubble.classList.remove('hidden');
-        if (duration) setTimeout(() => thoughtBubble.classList.add('hidden'), duration);
+        if (duration) {
+            setTimeout(() => thoughtBubble.classList.add('hidden'), duration);
+        }
     }
-    
-    // --- 7. FEEDING MODAL LOGIC ---
+
+    // --- 7. DAY/NIGHT & CONTEXTUAL EVENTS ---
+    function updateDayNightCycle() {
+        const hour = new Date().getHours();
+        const body = document.body;
+        const device = document.getElementById('device');
+        const sky = document.getElementById('sky-gradient');
+        let newBg, newDevice, newSky, newText;
+
+        if (hour >= 6 && hour < 18) { newBg = 'var(--day-bg)'; newDevice = 'var(--day-device)'; newSky = '#87CEEB'; newText = 'var(--day-text)'; } 
+        else if (hour >= 18 && hour < 20) { newBg = 'var(--dusk-bg)'; newDevice = 'var(--dusk-device)'; newSky = '#483D8B'; newText = 'var(--dusk-text)'; } 
+        else { newBg = 'var(--night-bg)'; newDevice = 'var(--night-device)'; newSky = '#1a1a2e'; newText = 'var(--night-text)'; }
+        
+        body.style.backgroundColor = newBg;
+        device.style.backgroundColor = newDevice;
+        device.style.color = newText;
+        sky.style.backgroundColor = newSky;
+
+        const wasSleeping = state.pet.isSleeping;
+        state.pet.isSleeping = (hour >= 22 || hour < 6);
+        if (state.pet.isSleeping && !wasSleeping) {
+            triggerContextualThought('sleep');
+        } else if (!state.pet.isSleeping && wasSleeping) {
+            triggerContextualThought('wake');
+        }
+    }
+    const contextualThoughts = {
+        sleep: "Zzzz... time to rest.",
+        wake: "Good morning! Let's be productive!",
+        hungry: "My tummy is rumbling...",
+        bored: "I'm feeling down...",
+        taskComplete: (taskText) => `Finished "${taskText}"! Great job!`,
+    };
+    function triggerContextualThought(event, data) {
+        let message = typeof contextualThoughts[event] === 'function' ? contextualThoughts[event](data) : contextualThoughts[event];
+        showThoughtBubble(message, 4000);
+    }
+
+    // --- 8. TASK MANAGEMENT ---
+    function renderTasks() {
+        if (!state.tasks) return;
+        const uncompletedTasks = state.tasks.filter(t => !t.completed);
+        const currentSelection = taskSelect.value;
+        taskSelect.innerHTML = uncompletedTasks.length > 0 ? '<option value="">-- SELECT A TASK --</option>' : '<option value="">-- ADD A TASK BELOW --</option>';
+        uncompletedTasks.forEach(task => {
+            const option = document.createElement('option');
+            option.value = task.id;
+            option.textContent = task.text;
+            taskSelect.appendChild(option);
+        });
+        if (uncompletedTasks.some(t => t.id == currentSelection)) {
+            taskSelect.value = currentSelection;
+        }
+        updateUI();
+    }
+
+    function addTask(e) {
+        e.preventDefault();
+        const text = taskInput.value.trim();
+        if (text) {
+            const newTask = { id: Date.now(), text, completed: false };
+            state.tasks.push(newTask);
+            taskInput.value = '';
+            renderTasks();
+            taskSelect.value = newTask.id;
+            updateUI();
+        }
+    }
+
+    function completeTask(taskId) {
+        const task = state.tasks.find(t => t.id == taskId);
+        if (task) {
+            task.completed = true;
+            updateStats({ happiness: 30, energy: -5 });
+            triggerContextualThought('taskComplete', task.text);
+            renderTasks();
+        }
+    }
+
+    // --- 9. MODAL LOGIC (FEEDING & SETTINGS) ---
+    let currentFoodIndex = 0;
     function populateSlider() {
         foodSlider.innerHTML = '';
         FOOD_ITEMS.forEach(item => {
@@ -332,35 +267,61 @@ window.onload = () => { // CRITICAL: Wait for all assets to load before running 
     }
 
     function updateSliderPosition() {
+        if (foodSlider.children.length === 0) return;
         const itemWidth = foodSlider.children[0].offsetWidth;
         foodSlider.style.transform = `translateX(-${currentFoodIndex * itemWidth}px)`;
         foodDescription.textContent = FOOD_ITEMS[currentFoodIndex].description;
-        showThoughtBubble(`Ooh, ${FOOD_ITEMS[currentFoodIndex].name}!`, 2000);
     }
 
     function openFeedModal() {
-        playSound('click');
-        currentFoodIndex = 0;
-        updateSliderPosition();
-        feedModal.classList.remove('hidden');
+        if (!state.timer.isRunning) {
+            playSound('click');
+            feedModal.classList.remove('hidden');
+            updateSliderPosition();
+        }
     }
-    
+
     function handleConfirmFeed() {
         playSound('feed');
-        const selectedFood = FOOD_ITEMS[currentFoodIndex];
-        updateStats(selectedFood);
-        showThoughtBubble(`Yum! Thanks for the ${selectedFood.name}!`, 3000);
+        const food = FOOD_ITEMS[currentFoodIndex];
+        updateStats(food);
+        showThoughtBubble(`Yum! Thanks for the ${food.name}!`, 3000);
         feedModal.classList.add('hidden');
     }
 
-    // --- 8. AI INTERACTION ---
+    function openSettingsModal() {
+        settingFocusTime.value = state.settings.focusDuration;
+        settingBreakTime.value = state.settings.breakDuration;
+        settingSoundToggle.textContent = state.settings.sound ? 'ON' : 'OFF';
+        settingsModal.classList.remove('hidden');
+    }
+
+    function saveSettings() {
+        state.settings.focusDuration = parseInt(settingFocusTime.value) || 25;
+        state.settings.breakDuration = parseInt(settingBreakTime.value) || 5;
+        if (!state.timer.isRunning) {
+            state.timer.timeRemaining = state.settings.focusDuration * 60;
+        }
+        settingsModal.classList.add('hidden');
+        updateUI();
+    }
+
+    function resetProgress() {
+        if (confirm('Are you sure? This will reset your pet and all tasks!')) {
+            localStorage.removeItem('focusTamaState');
+            init(true); // Re-initialize with default state
+        }
+    }
+
+    // --- 10. AI INTERACTION ---
     async function talkToPet() {
-        if (API_KEY === 'YOUR_OPENAI_API_KEY_HERE' || !API_KEY) {
+        if (!API_KEY || API_KEY === 'YOUR_OPENAI_API_KEY_HERE') {
             const messages = ["Let's do this!", "One task at a time.", "You're awesome!"];
             showThoughtBubble(messages[Math.floor(Math.random() * messages.length)]);
             return;
         }
-        playSound('click'); talkBtn.disabled = true;
+        playSound('click');
+        talkBtn.disabled = true;
         showThoughtBubble('Thinking...', 4000);
         try {
             const response = await fetch(API_URL, {
@@ -376,36 +337,42 @@ window.onload = () => { // CRITICAL: Wait for all assets to load before running 
                 })
             });
             const data = await response.json();
-            if(!response.ok) throw new Error(data.error.message);
+            if (!response.ok) throw new Error(data.error ? data.error.message : "Unknown API Error");
             showThoughtBubble(data.choices[0].message.content.trim());
         } catch (error) {
             console.error("AI Error:", error);
             showThoughtBubble("Oops, brain freeze!", 3000);
         } finally {
-            talkBtn.disabled = false;
+            if (!state.timer.isRunning) talkBtn.disabled = false;
         }
     }
 
-    // --- 9. POMODORO TIMER LOGIC ---
+    // --- 11. POMODORO TIMER ---
     function handleTimer() {
         state.timer.isRunning ? stopTimer() : startFocusSession();
     }
 
     function startFocusSession() {
+        const taskId = taskSelect.value;
+        if (!taskId) {
+            showThoughtBubble("Please select a task first!", 2000);
+            return;
+        }
+        state.timer.activeTaskId = taskId;
         state.timer.isRunning = true;
         state.timer.isBreak = false;
-        state.timer.timeRemaining = FOCUS_TIME;
-        showThoughtBubble("Focus time! Let's go!", 3000);
+        state.timer.timeRemaining = state.settings.focusDuration * 60;
+        showThoughtBubble(`Focus on "${taskSelect.options[taskSelect.selectedIndex].text}"!`, 3000);
         runTimer();
     }
 
     function stopTimer() {
         clearInterval(state.timer.intervalId);
         state.timer.isRunning = false;
-        showThoughtBubble("Timer stopped.", 2000);
+        showThoughtBubble("Timer paused.", 2000);
         updateUI();
     }
-    
+
     function runTimer() {
         clearInterval(state.timer.intervalId);
         state.timer.intervalId = setInterval(() => {
@@ -419,62 +386,138 @@ window.onload = () => { // CRITICAL: Wait for all assets to load before running 
                 } else {
                     playSound('success');
                     state.focusSessionsCompleted++;
-                    updateStats({ happiness: 25, energy: -15 });
-                    showNotification("Focus complete!", `Great work! That's ${state.focusSessionsCompleted} session(s) done!`);
-                    
+                    completeTask(state.timer.activeTaskId);
                     if (state.pet.evolution === 0 && state.focusSessionsCompleted >= EVOLUTION_THRESHOLD) {
                         state.pet.evolution = 1;
-                        playSound('evolve'); // TODO: Add an 'evolve.wav' sound
+                        playSound('evolve');
+                        applyScreenShake();
                         showThoughtBubble("Whoa! I'm evolving!", 5000);
-                    } else {
-                        state.timer.isBreak = true;
-                        state.timer.timeRemaining = BREAK_TIME;
-                        runTimer();
                     }
+                    state.timer.isBreak = true;
+                    state.timer.timeRemaining = state.settings.breakDuration * 60;
+                    showNotification("Focus complete!", "Time for a well-deserved break.");
+                    runTimer();
                 }
+            } else {
+                updateUI();
             }
-            updateUI();
         }, 1000);
         updateUI();
     }
-    
-    // --- 10. UTILITIES (Audio, Notifications, Persistence) ---
-    function playSound(id) { const s = document.getElementById(`audio-${id}`); if(s) s.play().catch(e => {}); }
-    function showNotification(t,b) { if(Notification.permission === 'granted') new Notification(t, {body:b, icon:'assets/images/icon.png'}); }
-    function saveState() { localStorage.setItem('focusTamaState', JSON.stringify(state)); }
-    function loadState() {
-        const saved = JSON.parse(localStorage.getItem('focusTamaState'));
-        if (saved) {
-            state = { ...state, ...saved, timer: { ...state.timer, isRunning: false, intervalId: null } };
+
+    // --- 12. UTILITIES ---
+    function playSound(id) {
+        if (state.settings.sound) {
+            const sound = document.getElementById(`audio-${id}`);
+            if (sound) {
+                sound.currentTime = 0;
+                sound.play().catch(e => {});
+            }
         }
     }
 
-    // --- 11. INITIALIZATION & EVENT LISTENERS ---
-    function init() {
-        loadState();
+    function showNotification(title, body) {
+        if ('Notification' in window && Notification.permission === 'granted') {
+            new Notification(title, { body: body, icon: 'assets/images/icon.png', silent: true });
+        }
+    }
+
+    function saveState() {
+        localStorage.setItem('focusTamaState', JSON.stringify(state));
+    }
+
+    function loadState() {
+        const savedState = localStorage.getItem('focusTamaState');
+        // Merge saved state with default state to prevent errors if new properties are added
+        const defaultState = getDefaultState();
+        if (savedState) {
+            const parsedState = JSON.parse(savedState);
+            // Deep merge to handle nested objects like pet and settings
+            state = {
+                ...defaultState,
+                ...parsedState,
+                pet: { ...defaultState.pet, ...parsedState.pet },
+                settings: { ...defaultState.settings, ...parsedState.settings },
+                tasks: parsedState.tasks || defaultState.tasks,
+            };
+        } else {
+            state = defaultState;
+        }
+    }
+
+    function applyScreenShake() {
+        document.getElementById('screen').classList.add('shake');
+        setTimeout(() => document.getElementById('screen').classList.remove('shake'), 300);
+    }
+
+    // --- 13. INITIALIZATION ---
+    function init(isReset = false) {
+        if (isReset) {
+            state = getDefaultState();
+        }
+        
+        // This is the correct order:
+        // 1. Set up the state
+        // 2. Populate UI elements that depend on state
+        // 3. Set up recurring processes
+        // 4. Request one-time permissions
+        
+        renderTasks();
         populateSlider();
-        updatePetStatus();
+        updateDayNightCycle();
         updateUI();
         
-        setInterval(handleStatDecay, STAT_DECAY_INTERVAL);
-        setInterval(saveState, 5000);
-        Notification.requestPermission();
+        // Clear old intervals before setting new ones to prevent duplicates on reset
+        if (window.decayInterval) clearInterval(window.decayInterval);
+        if (window.saveInterval) clearInterval(window.saveInterval);
+        if (window.dayNightInterval) clearInterval(window.dayNightInterval);
+
+        window.dayNightInterval = setInterval(updateDayNightCycle, 60000);
+        window.decayInterval = setInterval(handleStatDecay, STAT_DECAY_INTERVAL);
+        window.saveInterval = setInterval(saveState, 5000);
         
-        (function gameLoop() {
-            drawPet();
-            requestAnimationFrame(gameLoop);
-        })();
+        Notification.requestPermission();
+    }
+
+    function attachEventListeners() {
+        // This function is now called only once to prevent duplicate listeners
+        if (window.listenersAttached) return;
 
         startTimerBtn.addEventListener('click', () => { playSound('click'); handleTimer(); });
+        taskForm.addEventListener('submit', addTask);
+        taskSelect.addEventListener('change', updateUI);
         feedBtn.addEventListener('click', openFeedModal);
         talkBtn.addEventListener('click', talkToPet);
-        
+
         // Modal Listeners
-        document.getElementById('confirm-feed-btn').addEventListener('click', handleConfirmFeed);
-        document.getElementById('cancel-feed-btn').addEventListener('click', () => { playSound('click'); feedModal.classList.add('hidden'); });
-        document.getElementById('next-food-btn').addEventListener('click', () => { playSound('click'); currentFoodIndex = (currentFoodIndex + 1) % FOOD_ITEMS.length; updateSliderPosition(); });
-        document.getElementById('prev-food-btn').addEventListener('click', () => { playSound('click'); currentFoodIndex = (currentFoodIndex - 1 + FOOD_ITEMS.length) % FOOD_ITEMS.length; updateSliderPosition(); });
+        confirmFeedBtn.addEventListener('click', handleConfirmFeed);
+        cancelFeedBtn.addEventListener('click', () => { playSound('click'); feedModal.classList.add('hidden'); });
+        nextFoodBtn.addEventListener('click', () => { playSound('click'); currentFoodIndex = (currentFoodIndex + 1) % FOOD_ITEMS.length; updateSliderPosition(); });
+        prevFoodBtn.addEventListener('click', () => { playSound('click'); currentFoodIndex = (currentFoodIndex - 1 + FOOD_ITEMS.length) % FOOD_ITEMS.length; updateSliderPosition(); });
+
+        // Settings Listeners
+        settingsBtn.addEventListener('click', () => { playSound('click'); openSettingsModal(); });
+        saveSettingsBtn.addEventListener('click', () => { playSound('click'); saveSettings(); });
+        cancelSettingsBtn.addEventListener('click', () => { playSound('click'); settingsModal.classList.add('hidden'); });
+        resetProgressBtn.addEventListener('click', () => { playSound('sad'); resetProgress(); });
+        settingSoundToggle.addEventListener('click', () => {
+            state.settings.sound = !state.settings.sound;
+            settingSoundToggle.textContent = state.settings.sound ? 'ON' : 'OFF';
+            playSound('click');
+        });
+        window.listenersAttached = true;
     }
     
-    init(); // Start the application
+    // --- APP ENTRY POINT ---
+    // 1. Load the user's saved state or a default state
+    loadState();
+    // 2. Attach all event listeners to the DOM elements
+    attachEventListeners();
+    // 3. Load all image assets
+    loadSprites(); // This will call the main init() function when all sprites are loaded
+    // 4. Start the animation loop immediately (it has a guard clause)
+    (function gameLoop() {
+        drawPet();
+        requestAnimationFrame(gameLoop);
+    })();
 };
