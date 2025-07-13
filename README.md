@@ -4,7 +4,7 @@
 
 This project was built for the **"Blast from the Past: With a Modern Twist"** theme, reviving the beloved virtual pet concept with modern web technologies, including a dynamic UI, browser notifications, and a conversational AI companion powered by Google's Gemini.
 
-**[▶️ Live Demo Link Here]** <!-- TODO: Add your live demo link (e.g., from GitHub Pages or Netlify) -->
+**[[▶️ Live Demo Link Here]](https://focustama.vercel.app/)**
 
 <img width="1908" height="976" alt="Image" src="https://github.com/user-attachments/assets/9001aba8-3a62-4e7c-88fb-244f5c05d634" />
 
