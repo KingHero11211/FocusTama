@@ -13,6 +13,11 @@ A GitHub-style contribution graph visualizes your productivity over the last 70 
 
 ![Graph View](https://github.com/user-attachments/assets/111a8d2b-0652-4045-946d-8c29f82406e5)
 
+### Conversational AI Companion
+Chat with your pet! It uses the Google Gemini API to provide unique, encouraging, and context-aware responses.
+
+![AI Chat Example](https://github.com/user-attachments/assets/44f1a93e-c1bc-403b-8f29-56313dc556fe)
+
 ---
 
 ## ✨ Core Features
