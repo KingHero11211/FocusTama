@@ -62,6 +62,9 @@ window.onload = () => {
         base: { idle: new Image(), happy: new Image(), sad: new Image() },
         evo: { idle: new Image(), happy: new Image(), sad: new Image() }
     };
+
+    let spritesLoaded = 0;
+    
     const FRAME_WIDTH = 64, FRAME_HEIGHT = 64;
     let currentFrame = 0, frameTicker = 0;
 
