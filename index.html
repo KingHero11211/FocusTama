@@ -10,21 +10,36 @@
 </head>
 <body>
     <div id="device-wrapper">
-        <button id="settings-btn" class="gear-btn">⚙️</button>
+        <button id="settings-btn" class="gear-btn">⚙</button>
         <div id="device">
             <div id="game-container">
                 <h1>FocusTama</h1>
 
                 <div id="screen">
+                    <!-- NEW: Screen Menu -->
+                    <div id="screen-menu">
+                        <button id="view-pet-btn" class="screen-toggle-btn active">PET</button>
+                        <button id="view-graph-btn" class="screen-toggle-btn">GRAPH</button>
+                    </div>
+
                     <div id="sky-gradient"></div>
                     <div class="scanline-overlay"></div>
-                    <div id="pet-thought-bubble" class="hidden">...</div>
-                    <canvas id="pet-canvas" width="128" height="128"></canvas>
                     
-                    <div id="stats-container">
-                        <div class="stat"><label>HAPPINESS</label><progress id="happiness-bar" max="100"></progress></div>
-                        <div class="stat"><label>HUNGER</label><progress id="hunger-bar" max="100"></progress></div>
-                        <div class="stat"><label>ENERGY</label><progress id="energy-bar" max="100"></progress></div>
+                    <!-- Pet View Container -->
+                    <div id="pet-view">
+                        <div id="pet-thought-bubble" class="hidden">...</div>
+                        <canvas id="pet-canvas" width="128" height="128"></canvas>
+                        <div id="stats-container">
+                            <div class="stat"><label>HAPPINESS</label><progress id="happiness-bar" max="100"></progress></div>
+                            <div class="stat"><label>HUNGER</label><progress id="hunger-bar" max="100"></progress></div>
+                            <div class="stat"><label>ENERGY</label><progress id="energy-bar" max="100"></progress></div>
+                        </div>
+                    </div>
+                    
+                    <!-- NEW: Task Graph Container -->
+                    <div id="task-graph-container" class="hidden">
+                        <div id="task-graph-title">Focus Streak</div>
+                        <div id="task-graph-grid"></div>
                     </div>
                 </div>
 
@@ -37,18 +52,16 @@
                     <button id="start-timer-btn" disabled>SELECT A TASK</button>
                     
                     <div class="action-buttons">
-    <button id="feed-btn">FEED</button>
-    <!-- The CHAT button will now toggle the chat input -->
-    <button id="chat-toggle-btn">CHAT</button>
-</div>
+                        <button id="feed-btn">FEED</button>
+                        <button id="chat-toggle-btn">CHAT</button>
+                    </div>
 
-<!-- NEW: This is the chat input area, initially hidden -->
-<div id="chat-container" class="hidden">
-    <form id="chat-form">
-        <input type="text" id="chat-input" placeholder="Say something..." required maxlength="100">
-        <button type="submit">→</button>
-    </form>
-</div>
+                    <div id="chat-container" class="hidden">
+                        <form id="chat-form">
+                            <input type="text" id="chat-input" placeholder="Say something..." required maxlength="100">
+                            <button type="submit">→</button>
+                        </form>
+                    </div>
                 </div>
                 <div class="brand">Model: F-T 1996 <span id="version">v3.0 PRO</span></div>
             </div>
@@ -99,7 +112,7 @@
     <audio id="audio-success" src="assets/audio/success.mp3" preload="auto"></audio>
     <audio id="audio-feed" src="assets/audio/feed.mp3" preload="auto"></audio>
     <audio id="audio-sad" src="assets/audio/sad.mp3" preload="auto"></audio>
-    <audio id="audio-evolve" src="assets/audio/evolve.mp3" preload="auto"></audio>
+    <audio id="audio-evolve"src="assets/audio/evolve.mp3" preload="auto"></audio>
 
     <script src="config.js"></script>
     <script src="script.js"></script>
