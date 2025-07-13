@@ -113,7 +113,8 @@ button:active:not(:disabled) { transform: translateY(3px); }
 .food-item {
     width: 150px; height: 120px; flex-shrink: 0; display: flex; flex-direction: column;
     justify-content: center; align-items: center; background: var(--screen-bg);
-    border: 3px solid var(--screen-dark); border-radius: 10px; color: var(--screen-dark);
+    border: 3px solid var(--screen-dark); border-radius: 10px;
+    color: var(--screen-dark); 
 }
 .food-item .emoji { font-size: 48px; margin-bottom: 10px; }
 #food-description { font-size: 14px; height: 30px; }
@@ -132,3 +133,40 @@ button:active:not(:disabled) { transform: translateY(3px); }
 /* Screen Shake */
 @keyframes screen-shake { 0%, 100% { transform: translate(0, 0); } 25%, 75% { transform: translate(-2px, 2px); } 50% { transform: translate(2px, -2px); } }
 .shake { animation: screen-shake 0.3s ease-in-out; }
+
+/* --- NEW: STYLES FOR CHAT SYSTEM --- */
+
+#chat-container {
+    margin-top: 10px;
+    padding: 5px;
+    background-color: rgba(0,0,0,0.1);
+    border-radius: 5px;
+    transition: all 0.3s ease;
+}
+
+#chat-container.hidden {
+    display: none;
+}
+
+#chat-form {
+    display: flex;
+    gap: 5px;
+}
+
+#chat-input {
+    flex-grow: 1; /* Take up remaining space */
+    font-family: 'Press Start 2P', cursive;
+    background: #fff;
+    border: 2px solid var(--button-shadow);
+    padding: 8px;
+    font-size: 10px;
+    border-radius: 5px;
+}
+
+#chat-form button {
+    width: 45px;
+    padding: 8px 0;
+    font-size: 18px;
+    background-color: var(--accent-color);
+    box-shadow: 0 5px 0 var(--accent-shadow);
+}
