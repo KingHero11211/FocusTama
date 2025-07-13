@@ -16,7 +16,7 @@
                 <h1>FocusTama</h1>
 
                 <div id="screen">
-                    <!-- NEW: Screen Menu -->
+                    <!-- Screen Menu -->
                     <div id="screen-menu">
                         <button id="view-pet-btn" class="screen-toggle-btn active">PET</button>
                         <button id="view-graph-btn" class="screen-toggle-btn">GRAPH</button>
@@ -36,7 +36,7 @@
                         </div>
                     </div>
                     
-                    <!-- NEW: Task Graph Container -->
+                    <!-- Task Graph Container -->
                     <div id="task-graph-container" class="hidden">
                         <div id="task-graph-title">Focus Streak</div>
                         <div id="task-graph-grid"></div>
@@ -68,6 +68,18 @@
         </div>
     </div>
 
+    <!-- Name Entry Modal (New) -->
+    <div id="name-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h2>Welcome to FocusTama!</h2>
+            <p>What should your pet call you?</p>
+            <form id="name-form">
+                <input type="text" id="name-input" placeholder="Enter your name..." required maxlength="15">
+                <button type="submit" id="start-journey-btn">START</button>
+            </form>
+        </div>
+    </div>
+
     <!-- Feeding Modal -->
     <div id="feed-modal" class="modal-overlay hidden">
         <div class="modal-content">
@@ -83,6 +95,25 @@
             <div class="modal-actions">
                 <button id="confirm-feed-btn">FEED</button>
                 <button id="cancel-feed-btn">CANCEL</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Task Completion Reward Modal -->
+    <div id="reward-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h2>Task Complete!</h2>
+            <p>Choose a food reward!</p>
+            <div class="slider-container">
+                <button id="prev-reward-btn"><</button>
+                <div class="food-slider-viewport">
+                    <div id="reward-slider"></div>
+                </div>
+                <button id="next-reward-btn">></button>
+            </div>
+            <p id="reward-description">A healthy fruit to fill the tummy.</p>
+            <div class="modal-actions">
+                <button id="confirm-reward-btn">CHOOSE</button>
             </div>
         </div>
     </div>
