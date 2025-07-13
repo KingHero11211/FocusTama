@@ -1,6 +1,4 @@
-// Wrap the entire application in an Immediately Invoked Function Expression (IIFE)
-// and a `window.onload` event to ensure everything runs after the page is ready
-// and to avoid polluting the global scope.
+
 window.onload = () => {
     // --- 1. CONFIG & CONSTANTS ---
     const API_KEY = 'YOUR_OPENAI_API_KEY_HERE'; // TODO: Add your OpenAI API key
@@ -69,7 +67,7 @@ window.onload = () => {
     let currentFrame = 0, frameTicker = 0;
 
     function drawPet() {
-        if (!state.pet) return; // Guard clause against running before state is initialized
+        if (!state.pet) return; 
         frameTicker++;
         if (frameTicker % 15 === 0) {
             currentFrame = (currentFrame + 1) % 4;
@@ -79,14 +77,14 @@ window.onload = () => {
         const currentSpriteSet = petSprites[evolutionStage];
         let currentSprite = currentSpriteSet[state.pet.status] || currentSpriteSet.idle;
         if (state.pet.isSleeping) {
-            currentSprite = currentSpriteSet.sad; // Use 'sad' animation for sleeping
+            currentSprite = currentSpriteSet.sad; 
         }
         if (currentSprite.complete && currentSprite.naturalWidth > 0) {
             ctx.drawImage(currentSprite, currentFrame * FRAME_WIDTH, 0, FRAME_WIDTH, FRAME_HEIGHT, 0, 0, petCanvas.width, petCanvas.height);
         }
     }
 
-        // This is the function that was missing.
+        
     function loadSprites() {
         const spritePaths = {
             base: { idle: 'assets/images/puppy-idle.png', happy: 'assets/images/puppy-happy.png', sad: 'assets/images/puppy-sad.png' },
@@ -100,14 +98,14 @@ window.onload = () => {
                 petSprites[stage][mood].onload = () => {
                     spritesLoaded++;
                     if (spritesLoaded === totalSprites) {
-                        init(); // Start the app only when all images are loaded
+                        init();
                     }
                 };
                 petSprites[stage][mood].onerror = () => {
                     console.error(`Failed to load sprite: ${spritePaths[stage][mood]}`);
                     spritesLoaded++;
                     if (spritesLoaded === totalSprites) {
-                        init(); // Also init on error to not block app
+                        init(); 
                     }
                 };
             }
@@ -312,7 +310,7 @@ window.onload = () => {
     function resetProgress() {
         if (confirm('Are you sure? This will reset your pet and all tasks!')) {
             localStorage.removeItem('focusTamaState');
-            init(true); // Re-initialize with default state
+            init(true); 
         }
     }
 
@@ -431,11 +429,11 @@ window.onload = () => {
 
     function loadState() {
         const savedState = localStorage.getItem('focusTamaState');
-        // Merge saved state with default state to prevent errors if new properties are added
+       
         const defaultState = getDefaultState();
         if (savedState) {
             const parsedState = JSON.parse(savedState);
-            // Deep merge to handle nested objects like pet and settings
+           
             state = {
                 ...defaultState,
                 ...parsedState,
@@ -459,18 +457,13 @@ window.onload = () => {
             state = getDefaultState();
         }
         
-        // This is the correct order:
-        // 1. Set up the state
-        // 2. Populate UI elements that depend on state
-        // 3. Set up recurring processes
-        // 4. Request one-time permissions
         
         renderTasks();
         populateSlider();
         updateDayNightCycle();
         updateUI();
         
-        // Clear old intervals before setting new ones to prevent duplicates on reset
+        
         if (window.decayInterval) clearInterval(window.decayInterval);
         if (window.saveInterval) clearInterval(window.saveInterval);
         if (window.dayNightInterval) clearInterval(window.dayNightInterval);
@@ -483,7 +476,7 @@ window.onload = () => {
     }
 
     function attachEventListeners() {
-        // This function is now called only once to prevent duplicate listeners
+        
         if (window.listenersAttached) return;
 
         startTimerBtn.addEventListener('click', () => { playSound('click'); handleTimer(); });
@@ -511,14 +504,12 @@ window.onload = () => {
         window.listenersAttached = true;
     }
     
-    // --- APP ENTRY POINT ---
-    // 1. Load the user's saved state or a default state
+
     loadState();
-    // 2. Attach all event listeners to the DOM elements
+    
     attachEventListeners();
-    // 3. Load all image assets
-    loadSprites(); // This will call the main init() function when all sprites are loaded
-    // 4. Start the animation loop immediately (it has a guard clause)
+  
+    loadSprites(); 
     (function gameLoop() {
         drawPet();
         requestAnimationFrame(gameLoop);
