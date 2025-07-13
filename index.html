@@ -37,9 +37,18 @@
                     <button id="start-timer-btn" disabled>SELECT A TASK</button>
                     
                     <div class="action-buttons">
-                        <button id="feed-btn">FEED</button>
-                        <button id="talk-btn">TALK</button>
-                    </div>
+    <button id="feed-btn">FEED</button>
+    <!-- The CHAT button will now toggle the chat input -->
+    <button id="chat-toggle-btn">CHAT</button>
+</div>
+
+<!-- NEW: This is the chat input area, initially hidden -->
+<div id="chat-container" class="hidden">
+    <form id="chat-form">
+        <input type="text" id="chat-input" placeholder="Say something..." required maxlength="100">
+        <button type="submit">→</button>
+    </form>
+</div>
                 </div>
                 <div class="brand">Model: F-T 1996 <span id="version">v3.0 PRO</span></div>
             </div>
@@ -92,6 +101,7 @@
     <audio id="audio-sad" src="assets/audio/sad.mp3" preload="auto"></audio>
     <audio id="audio-evolve" src="assets/audio/evolve.mp3" preload="auto"></audio>
 
+    <script src="config.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
