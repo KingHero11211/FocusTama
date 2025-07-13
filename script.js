@@ -62,7 +62,6 @@ window.onload = () => {
     const prevRewardBtn = document.getElementById('prev-reward-btn');
     const nextRewardBtn = document.getElementById('next-reward-btn');
     const confirmRewardBtn = document.getElementById('confirm-reward-btn');
-    // NEW: Selectors for the name modal
     const nameModal = document.getElementById('name-modal');
     const nameForm = document.getElementById('name-form');
     const nameInput = document.getElementById('name-input');
@@ -75,17 +74,24 @@ window.onload = () => {
         if (!state.pet) return;
         frameTicker++;
         if (frameTicker % 15 === 0) currentFrame = (currentFrame + 1) % 4;
+
         ctx.clearRect(0, 0, petCanvas.width, petCanvas.height);
         const evolutionStage = state.pet.evolution === 0 ? 'base' : 'evo';
         const currentSpriteSet = petSprites[evolutionStage];
         let currentSprite = currentSpriteSet[state.pet.status] || currentSpriteSet.idle;
+        
+        let yOffset = 0;
+
+        if (state.pet.status === 'happy' && !state.pet.isSleeping) {
+            yOffset = Math.sin(frameTicker * 0.2) * -4;
+        }
+
         if (state.pet.isSleeping) {
-            // Use the idle sprite for sleeping to avoid confusion with the sad sprite.
-            // The new triggerContextualThought function will show a "sleeping" message.
             currentSprite = currentSpriteSet.idle;
         }
+
         if (currentSprite.complete && currentSprite.naturalWidth > 0) {
-            ctx.drawImage(currentSprite, currentFrame * FRAME_WIDTH, 0, FRAME_WIDTH, FRAME_HEIGHT, 0, 0, petCanvas.width, petCanvas.height);
+            ctx.drawImage(currentSprite, currentFrame * FRAME_WIDTH, 0, FRAME_WIDTH, FRAME_HEIGHT, 0, yOffset, petCanvas.width, petCanvas.height);
         }
     }
 
@@ -108,20 +114,28 @@ window.onload = () => {
     function updatePetStatus() {
         if(state.pet.isSleeping) return;
         const oldStatus = state.pet.status;
-        if (state.pet.happiness < 30 || state.pet.hunger < 30 || state.pet.energy < 20) {
+
+        if (state.pet.happiness <= 30 || state.pet.hunger <= 30 || state.pet.energy <= 20) {
             state.pet.status = 'sad';
-            if (oldStatus !== 'sad') triggerContextualThought(state.pet.hunger < 30 ? 'hungry' : 'bored');
-        } else if (state.pet.happiness > 70 && state.pet.energy > 60) {
+            if (oldStatus !== 'sad') {
+                if (state.pet.hunger <= 30) {
+                    triggerContextualThought('hungry');
+                } else {
+                    triggerContextualThought('bored');
+                }
+            }
+        } 
+        else if (state.pet.happiness >= 70 && state.pet.energy >= 60) {
             state.pet.status = 'happy';
-        } else {
+        } 
+        else {
             state.pet.status = 'idle';
         }
     }
 
-    // --- NEW FUNCTION TO BE ADDED ---
     function triggerContextualThought(context, data = '') {
         let message = '';
-        const name = state.username || 'pal'; // Use a friendly default
+        const name = state.username || 'pal';
         switch (context) {
             case 'hungry':
                 message = "My tummy is rumbling...";
@@ -141,7 +155,7 @@ window.onload = () => {
                 message = `Good morning, ${name}! Let's have a great day!`;
                 break;
             default:
-                return; // Do nothing if context is unknown
+                return;
         }
         showThoughtBubble(message, 6000);
     }
@@ -192,35 +206,32 @@ window.onload = () => {
 
     // --- 7. DAY/NIGHT & CONTEXTUAL EVENTS ---
     function updateDayNightCycle() {
-    const hour = new Date().getHours();
-    const body = document.body;
-    const device = document.getElementById('device');
-    const screen = document.getElementById('screen'); // We need to select the screen now
+        const hour = new Date().getHours();
+        const body = document.body;
+        const device = document.getElementById('device');
+        const screen = document.getElementById('screen');
 
-    if (hour >= 6 && hour < 18) { // Day
-        body.style.backgroundColor = 'var(--bg-color)';
-        device.style.backgroundColor = 'var(--device-color)';
-        device.style.color = 'var(--text-color)';
-        screen.classList.remove('night-mode'); // --- ADD THIS LINE ---
-    } else { // Dusk & Night
-        body.style.backgroundColor = 'var(--night-bg)';
-        device.style.backgroundColor = 'var(--night-device)';
-        device.style.color = 'var(--night-text)';
-        screen.classList.add('night-mode'); // --- ADD THIS LINE ---
+        if (hour >= 6 && hour < 18) {
+            body.style.backgroundColor = 'var(--bg-color)';
+            device.style.backgroundColor = 'var(--device-color)';
+            device.style.color = 'var(--text-color)';
+            screen.classList.remove('night-mode');
+        } else {
+            body.style.backgroundColor = 'var(--night-bg)';
+            device.style.backgroundColor = 'var(--night-device)';
+            device.style.color = 'var(--night-text)';
+            screen.classList.add('night-mode');
+        }
+        
+        const wasSleeping = state.pet.isSleeping;
+        state.pet.isSleeping = (hour >= 22 || hour < 6);
+        if (state.pet.isSleeping && !wasSleeping) {
+            triggerContextualThought('sleep');
+        } else if (!state.pet.isSleeping && wasSleeping) {
+            triggerContextualThought('wake');
+        }
     }
-    
-    // The sleeping logic remains the same
-    const wasSleeping = state.pet.isSleeping;
-    state.pet.isSleeping = (hour >= 22 || hour < 6);
-    if (state.pet.isSleeping && !wasSleeping) {
-        triggerContextualThought('sleep');
-    } else if (!state.pet.isSleeping && wasSleeping) {
-        triggerContextualThought('wake');
-    }
-}
 
-
-    // --- ADD THIS NEW FUNCTION ---
     function greetUser() {
         if (state.username) {
             const greetings = [
@@ -229,7 +240,6 @@ window.onload = () => {
                 `Good to see you, ${state.username}! What's the plan?`
             ];
             const randomGreeting = greetings[Math.floor(Math.random() * greetings.length)];
-            // Use a short delay so it doesn't appear instantly on load
             setTimeout(() => { showThoughtBubble(randomGreeting, 5000); }, 750);
         }
     }
@@ -411,10 +421,10 @@ window.onload = () => {
     }
 
     playSound('click');
-    chatToggleBtn.disabled = true; // Disable the main chat button during conversation
+    chatToggleBtn.disabled = true;
     chatInput.disabled = true;
     chatForm.querySelector('button').disabled = true;
-    showThoughtBubble('Thinking...', 10000); // Show thinking bubble for up to 10 seconds
+    showThoughtBubble('Thinking...', 10000);
 
     const GOOGLE_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GOOGLE_API_KEY}`;
     
@@ -425,7 +435,7 @@ window.onload = () => {
             }]
         }],
         "generationConfig": { "temperature": 0.9, "maxOutputTokens": 60 },
-        "safetySettings": [ /* ... safety settings ... */ ]
+        "safetySettings": [ ]
     };
 
     try {
@@ -463,12 +473,11 @@ window.onload = () => {
         playSound('click');
         if (state.timer.isRunning) {
             stopTimer("Timer stopped.");
-            // If we were in a break and stopped, reset to a focus state
             if(state.timer.isBreak) {
                 state.timer.isBreak = false;
                 state.timer.timeRemaining = state.settings.focusDuration * 60;
             }
-            updateUI(); // Manually update the UI after stopping.
+            updateUI();
         } else if (state.timer.isBreak) {
             startBreakSession();
         } else {
@@ -504,28 +513,23 @@ window.onload = () => {
             state.timer.timeRemaining--;
 
             if (state.timer.timeRemaining < 0) {
-                // Timer has finished, stop the interval immediately.
                 clearInterval(state.timer.intervalId);
 
                 if (state.timer.isBreak) {
-                    // The BREAK has finished.
                     state.timer.isRunning = false;
                     state.timer.isBreak = false;
                     state.timer.timeRemaining = state.settings.focusDuration * 60;
                     showThoughtBubble("Break finished! Ready for more?", 3000);
                 } else {
-                    // The FOCUS session has finished. Set up for the break.
                     state.timer.isRunning = false;
                     state.timer.isBreak = true;
                     state.timer.timeRemaining = state.settings.breakDuration * 60;
 
-                    // Handle rewards and other events
                     state.focusSessionsCompleted++;
                     completeTask(state.timer.activeTaskId);
-                    openRewardModal(); // Contains 'success' sound
+                    openRewardModal();
                     showNotification("Focus complete!", "Great work! Choose a reward and take a break.");
 
-                    // Check for evolution
                     if (state.pet.evolution === 0 && state.focusSessionsCompleted >= EVOLUTION_THRESHOLD) {
                         state.pet.evolution = 1;
                         playSound('evolve');
@@ -533,13 +537,9 @@ window.onload = () => {
                         showThoughtBubble("Whoa! I'm evolving!", 5000);
                     }
                 }
-
-                // After the new state is fully prepared, update the UI once and exit.
                 updateUI();
                 return;
             }
-
-            // This runs every second while the timer is still ticking.
             updateUI();
         }, 1000);
     }
@@ -556,7 +556,7 @@ window.onload = () => {
             state = { 
                 ...defaultState, 
                 ...parsedState,
-                username: parsedState.username || null, // MODIFIED: Ensure username is loaded
+                username: parsedState.username || null,
                 pet: { ...defaultState.pet, ...parsedState.pet }, 
                 settings: { ...defaultState.settings, ...parsedState.settings }, 
                 tasks: parsedState.tasks || defaultState.tasks, 
@@ -573,7 +573,6 @@ window.onload = () => {
     }
     function applyScreenShake() { document.getElementById('screen').classList.add('shake'); setTimeout(() => document.getElementById('screen').classList.remove('shake'), 300); }
     
-    // NEW: Function to handle the initial name submission
     function handleNameSubmission(e) {
         e.preventDefault();
         const username = nameInput.value.trim();
@@ -582,14 +581,13 @@ window.onload = () => {
             playSound('success');
             nameModal.classList.add('hidden');
             
-            startGame(); // Start the main application
+            startGame();
 
-            // Greet the new user by name
             setTimeout(() => {
                 showThoughtBubble(`Hey ${state.username}! Let's get focused!`, 5000);
-            }, 500); // Short delay for UI to settle
+            }, 500);
             
-            saveState(); // Save the new state with the username
+            saveState();
         }
     }
 
@@ -617,18 +615,17 @@ window.onload = () => {
         nextRewardBtn.addEventListener('click', () => { playSound('click'); currentRewardIndex = (currentRewardIndex + 1) % FOOD_ITEM_BLUEPRINT.length; updateRewardSliderPosition(); });
         prevRewardBtn.addEventListener('click', () => { playSound('click'); currentRewardIndex = (currentRewardIndex - 1 + FOOD_ITEM_BLUEPRINT.length) % FOOD_ITEM_BLUEPRINT.length; updateRewardSliderPosition(); });
         
-        nameForm.addEventListener('submit', handleNameSubmission); // NEW: Attach listener for name form
+        nameForm.addEventListener('submit', handleNameSubmission);
         
         window.listenersAttached = true;
     }
 
     function init(isReset = false) {
         if (isReset) {
-            // On reset, also clear the username and force re-entry
             localStorage.removeItem('focusTamaState');
             state = getDefaultState();
             nameModal.classList.remove('hidden');
-            return; // Stop initialization here until name is re-entered
+            return;
         }
         renderTasks();
         renderTaskGraph();
@@ -645,7 +642,6 @@ window.onload = () => {
         greetUser();
     }
     
-    // NEW: Helper function to start the main app loop
     function startGame() {
         init();
         (function gameLoop() { 
@@ -654,7 +650,6 @@ window.onload = () => {
         })();
     }
 
-    // MODIFIED: Main function to handle the initial user check
     function main() {
         loadState();
         attachEventListeners();
@@ -665,7 +660,6 @@ window.onload = () => {
         };
         const totalSprites = Object.keys(spritePaths.base).length + Object.keys(spritePaths.evo).length;
         if (totalSprites === 0) {
-             // Fallback if no sprites
             if (!state.username) {
                 nameModal.classList.remove('hidden');
             } else {
@@ -676,12 +670,9 @@ window.onload = () => {
         const onSpriteLoad = () => {
             spritesLoaded++;
             if (spritesLoaded === totalSprites) {
-                // When all assets are ready, check if we have a user name
                 if (!state.username) {
-                    // If no name, show the name modal and wait for submission
                     nameModal.classList.remove('hidden');
                 } else {
-                    // If we have a name, start the game
                     startGame();
                 }
             }
