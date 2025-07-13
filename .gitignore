@@ -1,0 +1,4 @@
+# .gitignore
+
+# Ignore the configuration file containing secret API keys
+config.js
