@@ -30,7 +30,7 @@ window.onload = () => {
     const petCanvas = document.getElementById('pet-canvas'); const ctx = petCanvas.getContext('2d');
     const happinessBar = document.getElementById('happiness-bar'); const hungerBar = document.getElementById('hunger-bar'); const energyBar = document.getElementById('energy-bar');
     const timerDisplay = document.getElementById('timer-display'); const startTimerBtn = document.getElementById('start-timer-btn');
-    const feedBtn = document.getElementById('feed-btn'); const talkBtn = document.getElementById('talk-btn');
+    const feedBtn = document.getElementById('feed-btn');
     const thoughtBubble = document.getElementById('pet-thought-bubble'); const taskSelect = document.getElementById('task-select');
     const taskForm = document.getElementById('task-form'); const taskInput = document.getElementById('task-input');
     const feedModal = document.getElementById('feed-modal'); const foodSlider = document.getElementById('food-slider'); const foodDescription = document.getElementById('food-description');
@@ -97,7 +97,6 @@ window.onload = () => {
         
         const isInteractable = !state.timer.isRunning;
         feedBtn.disabled = !isInteractable;
-        talkBtn.disabled = !isInteractable;
         taskInput.disabled = !isInteractable;
         taskForm.querySelector('button').disabled = !isInteractable;
         settingsBtn.disabled = !isInteractable;
