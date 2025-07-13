@@ -7,7 +7,11 @@ This project was built for the **"Blast from the Past: With a Modern Twist"** th
 **[▶️ Live Demo Link Here]** <!-- TODO: Add your live demo link (e.g., from GitHub Pages or Netlify) -->
 
 <img width="1908" height="976" alt="Image" src="https://github.com/user-attachments/assets/9001aba8-3a62-4e7c-88fb-244f5c05d634" />
-<!-- TODO: Add a screenshot of your app to the repository and update the path above! -->
+
+### Focus Streak Graph
+A GitHub-style contribution graph visualizes your productivity over the last 70 days.
+
+![Graph View](<img width="1901" height="977" alt="Image" src="https://github.com/user-attachments/assets/1984b8f2-c087-4fe7-ae0d-1d2b23f964b0" />)
 
 ---
 
