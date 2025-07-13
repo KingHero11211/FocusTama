@@ -11,7 +11,7 @@ This project was built for the **"Blast from the Past: With a Modern Twist"** th
 ### Focus Streak Graph
 A GitHub-style contribution graph visualizes your productivity over the last 70 days.
 
-![Graph View](<img width="1901" height="977" alt="Image" src="https://github.com/user-attachments/assets/1984b8f2-c087-4fe7-ae0d-1d2b23f964b0" />)
+![Graph View](https://github.com/user-attachments/assets/1984b8f2-c087-4fe7-ae0d-1d2b23f964b0")
 
 ---
 
