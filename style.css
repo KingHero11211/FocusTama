@@ -14,11 +14,25 @@
     --graph-green: #39d353;
 }
 body {
-    background-color: var(--day-bg);
+    /* The new animated starfield background */
+    background-color: #1a1a2e; /* A deep space blue */
+    background-image: 
+        radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 40px),
+        radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 30px),
+        radial-gradient(white, rgba(255,255,255,.1) 2px, transparent 40px),
+        radial-gradient(rgba(255,255,255,.4), rgba(255,255,255,.1) 2px, transparent 30px);
+    background-size: 550px 550px, 350px 350px, 250px 250px, 150px 150px; 
+    background-position: 0 0, 40px 60px, 130px 270px, 70px 100px;
+    animation: move-stars 200s linear infinite;
+
+    /* All other styles remain the same */
     font-family: 'Press Start 2P', cursive;
-    display: flex; justify-content: center; align-items: center;
-    height: 100vh; margin: 0; overflow: hidden;
-    transition: background-color 2s ease-in-out;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    overflow: hidden;
 }
 #device-wrapper { position: relative; }
 #device {
