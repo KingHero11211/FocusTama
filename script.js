@@ -30,7 +30,7 @@ window.onload = () => {
     const petCanvas = document.getElementById('pet-canvas'); const ctx = petCanvas.getContext('2d');
     const happinessBar = document.getElementById('happiness-bar'); const hungerBar = document.getElementById('hunger-bar'); const energyBar = document.getElementById('energy-bar');
     const timerDisplay = document.getElementById('timer-display'); const startTimerBtn = document.getElementById('start-timer-btn');
-    const feedBtn = document.getElementById('feed-btn');
+    const feedBtn = document.getElementById('feed-btn'); 
     const thoughtBubble = document.getElementById('pet-thought-bubble'); const taskSelect = document.getElementById('task-select');
     const taskForm = document.getElementById('task-form'); const taskInput = document.getElementById('task-input');
     const feedModal = document.getElementById('feed-modal'); const foodSlider = document.getElementById('food-slider'); const foodDescription = document.getElementById('food-description');
@@ -97,6 +97,7 @@ window.onload = () => {
         
         const isInteractable = !state.timer.isRunning;
         feedBtn.disabled = !isInteractable;
+
         taskInput.disabled = !isInteractable;
         taskForm.querySelector('button').disabled = !isInteractable;
         settingsBtn.disabled = !isInteractable;
@@ -267,13 +268,13 @@ async function handleChatMessage(userMessage) {
 
     // --- 11. RE-ARCHITECTED POMODORO TIMER ---
     function handleTimer() {
-        playSound('click');
+        playSound('click'); // Play a click sound for any button press
         if (state.timer.isRunning) {
-            stopTimer("Timer stopped.");
+            stopTimer("Timer stopped."); // If it's running, stop it.
         } else if (state.timer.isBreak) {
-            startBreakSession();
+            startBreakSession(); // If it's set up for a break, start the break.
         } else {
-            startFocusSession();
+            startFocusSession(); // Otherwise, start a new focus session.
         }
     }
     function startFocusSession() {
@@ -287,9 +288,9 @@ async function handleChatMessage(userMessage) {
         runTimer();
     }
     function startBreakSession() {
-        playSound('success');
+        playSound('success'); // Play the reward sound ON CLICK!
         state.timer.isRunning = true;
-        state.timer.isBreak = true;
+        // isBreak is already true, so we don't need to set it again.
         state.timer.timeRemaining = state.settings.breakDuration * 60;
         showThoughtBubble("Time for a nice break!", 3000);
         runTimer();
@@ -307,6 +308,7 @@ async function handleChatMessage(userMessage) {
             state.timer.timeRemaining--;
             if (state.timer.timeRemaining < 0) {
                 clearInterval(state.timer.intervalId);
+
                 if (state.timer.isBreak) {
                     stopTimer("Break finished! Ready for more?");
                     state.timer.isBreak = false;
@@ -315,8 +317,10 @@ async function handleChatMessage(userMessage) {
                     stopTimer();
                     state.focusSessionsCompleted++;
                     completeTask(state.timer.activeTaskId);
+
                     state.timer.isBreak = true;
                     state.timer.timeRemaining = state.settings.breakDuration * 60;
+                    
                     showNotification("Focus complete!", "Great work! Click 'Start Break' to relax.");
                     if (state.pet.evolution === 0 && state.focusSessionsCompleted >= EVOLUTION_THRESHOLD) {
                         state.pet.evolution = 1;
