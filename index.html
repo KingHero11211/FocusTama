@@ -9,38 +9,45 @@
     <link rel="icon" href="assets/images/icon.png" type="image/png">
 </head>
 <body>
+    <div id="device-wrapper">
+        <button id="settings-btn" class="gear-btn">⚙️</button>
+        <div id="device">
+            <div id="game-container">
+                <h1>FocusTama</h1>
 
-    <div id="device">
-        <div id="game-container">
-            <h1>FocusTama</h1>
-
-            <div id="screen">
-                <div class="scanline-overlay"></div>
-                <div id="pet-thought-bubble" class="hidden">...</div>
-                <canvas id="pet-canvas" width="128" height="128"></canvas>
-                
-                <div id="stats-container">
-                    <div class="stat"><label>HAPPINESS</label><progress id="happiness-bar" max="100"></progress></div>
-                    <div class="stat"><label>HUNGER</label><progress id="hunger-bar" max="100"></progress></div>
-                    <div class="stat"><label>ENERGY</label><progress id="energy-bar" max="100"></progress></div>
+                <div id="screen">
+                    <div id="sky-gradient"></div>
+                    <div class="scanline-overlay"></div>
+                    <div id="pet-thought-bubble" class="hidden">...</div>
+                    <canvas id="pet-canvas" width="128" height="128"></canvas>
+                    
+                    <div id="stats-container">
+                        <div class="stat"><label>HAPPINESS</label><progress id="happiness-bar" max="100"></progress></div>
+                        <div class="stat"><label>HUNGER</label><progress id="hunger-bar" max="100"></progress></div>
+                        <div class="stat"><label>ENERGY</label><progress id="energy-bar" max="100"></progress></div>
+                    </div>
                 </div>
-            </div>
 
-            <div id="controls">
-                <div id="timer-display">25:00</div>
-                <button id="start-timer-btn">START FOCUS</button>
-                
-                <div class="action-buttons">
-                    <button id="feed-btn">FEED</button>
-                    <button id="talk-btn">TALK</button>
+                <div id="controls">
+                    <div id="timer-display">25:00</div>
+                    <div id="task-area">
+                        <select id="task-select"><option value="">-- ADD A TASK TO FOCUS --</option></select>
+                        <form id="task-form"><input type="text" id="task-input" placeholder="New Task..." required maxlength="30"><button type="submit">+</button></form>
+                    </div>
+                    <button id="start-timer-btn" disabled>SELECT A TASK</button>
+                    
+                    <div class="action-buttons">
+                        <button id="feed-btn">FEED</button>
+                        <button id="talk-btn">TALK</button>
+                    </div>
                 </div>
+                <div class="brand">Model: F-T 1996 <span id="version">v3.0 PRO</span></div>
             </div>
-            <div class="brand">Model: F-T 1996 <span id="version">v1.0</span></div>
         </div>
     </div>
 
-    <!-- Interactive Feeding Modal -->
-    <div id="feed-modal" class="hidden">
+    <!-- Feeding Modal -->
+    <div id="feed-modal" class="modal-overlay hidden">
         <div class="modal-content">
             <h2>Choose a Snack!</h2>
             <div class="slider-container">
@@ -55,6 +62,26 @@
                 <button id="confirm-feed-btn">FEED</button>
                 <button id="cancel-feed-btn">CANCEL</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h2>Settings</h2>
+            <div class="settings-grid">
+                <label>Focus Time (min):</label>
+                <input type="number" id="setting-focus-time" min="5" step="5">
+                <label>Break Time (min):</label>
+                <input type="number" id="setting-break-time" min="1" step="1">
+                <label>Sound:</label>
+                <button id="setting-sound-toggle">ON</button>
+            </div>
+            <div class="modal-actions">
+                <button id="save-settings-btn">SAVE</button>
+                <button id="cancel-settings-btn">CANCEL</button>
+            </div>
+            <button id="reset-progress-btn">Reset Progress</button>
         </div>
     </div>
 
