@@ -54,6 +54,8 @@ This project was built from the ground up with a focus on clean, framework-free 
 ## 📂 File Structure
 
 The project is organized into a clean and intuitive structure:
+
+```
 focustama/
 │
 ├── 📄 index.html # The main HTML file containing the app structure.
@@ -79,7 +81,7 @@ focustama/
 ├── 🖼️ puppy-evo-idle.png
 ├── 🖼️ puppy-evo-happy.png
 └── 🖼️ puppy-evo-sad.png
-
+```
 ---
 
 ## 🚀 Getting Started
